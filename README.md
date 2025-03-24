@@ -10,11 +10,6 @@ Bu proje, bir sosyal medya platformu için PostgreSQL veritabanı şeması içer
 - Etkileşimler (`interactions`)
 - Tavsiyeler (`recommendations`)
 
-## 🚀 Kurulum:
-1. PostgreSQL'i yükleyin.
-2. `schema.sql` dosyasını çalıştırarak veritabanını oluşturun.
-3. `.env` dosyanızda PostgreSQL bağlantı bilgilerini ayarlayın.
-
 ## 
 
 Supabase bulut tabanlı veritabanı ile bağlantı kuruldu.
