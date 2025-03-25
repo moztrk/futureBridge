@@ -1,0 +1,144 @@
+:root {
+    --primary-color: #2563EB;
+    --secondary-color: #6B7280;
+    --background-color: #F3F4F6;
+    --white: #FFFFFF;
+  }
+  
+  .auth-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+  }
+  
+  /* Login/Kayıt Alanı */
+  .auth-box {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 350px;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .auth-section {
+    width: 25%;
+    padding: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--background-color);
+  }
+  
+  .auth-box h2 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+  }
+  
+  .auth-box form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .auth-box input {
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid var(--secondary-color);
+    border-radius: 5px;
+  }
+  
+  .auth-box button {
+    background: var(--primary-color);
+    color: var(--white);
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .auth-box button:hover {
+    background: #1E40AF;
+  }
+  
+  .auth-box p {
+    margin-top: 10px;
+    color: var(--secondary-color);
+  }
+  
+  .auth-box a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  /* Tanıtım Alanı */
+  .intro-section {
+    flex: 1;
+    background: linear-gradient(to right, #2563EB, #1E40AF);
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    text-align: left;
+    padding: 4rem;
+    position: relative;
+  }
+  
+  .intro-section h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    animation: fadeInDown 1s ease-in-out;
+  }
+  
+  .intro-section p {
+    font-size: 1.2rem;
+    max-width: 6000px;
+    line-height: 1.6;
+    animation: fadeInUp 1.2s ease-in-out;
+  }
+  
+  /* Buton */
+  .cta-button {
+    margin-top: 1.5rem;
+    padding: 12px 24px;
+    background-color: var(--white);
+    color: var(--primary-color);
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .cta-button:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Animasyonlar */
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
