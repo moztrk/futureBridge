@@ -1,24 +1,65 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import './Auth.css';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
+import '../auth/Auth.css';
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
+
     if (password !== confirmPassword) {
-      alert('Şifreler eşleşmiyor!');
+      alert('❌ Şifreler eşleşmiyor!');
       return;
     }
-    console.log('Kayıt olunuyor:', { email, password });
+
+    setLoading(true);
+
+   
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,  // Supabase kendi hash'leyecek
+    });
+
+    if (error) {
+      alert(error.message);
+      setLoading(false);
+      return;
+    }
+
+    const user = data.user;
+    
+    if (user) {
+     
+      const { error: insertError } = await supabase.from('users').insert([
+        {
+          id: user.id,
+          email: user.email,
+          username: email.split('@')[0],  
+          password: password, 
+          created_at: new Date(),
+          updated_at: new Date(),
+        }
+      ]);
+
+      if (insertError) {
+        alert('Veritabanı hatası: ' + insertError.message);
+      } else {
+        alert('✅ Kayıt başarılı! Lütfen e-postanızı doğrulayın.');
+        navigate('/login');
+      }
+    }
+
+    setLoading(false);
   };
 
   return (
     <div className="auth-container">
-      {/* Sol Taraf - Kayıt Ol */}
       <div className="auth-section">
         <div className="auth-box">
           <h2>Kayıt Ol</h2>
@@ -44,19 +85,12 @@ const SignUp = () => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
-            <button type="submit">Kayıt Ol</button>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Kayıt Olunuyor...' : 'Kayıt Ol'}
+            </button>
           </form>
           <p>Zaten hesabınız var mı? <Link to="/login">Giriş Yap</Link></p>
         </div>
-      </div>
-
-      {/* Sağ Taraf - Tanıtım Bölümü */}
-      <div className="intro-section">
-        <h1>Future</h1>
-        <p>
-          Yapay zeka destekli mentorluk ile hedeflerinize ulaşmak için geleceğe bir adım atın.
-        </p>
-        <button className="cta-button">Daha Fazla Keşfet</button>
       </div>
     </div>
   );

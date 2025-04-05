@@ -1,18 +1,36 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 import './Auth.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate(); //yönlendirme  
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    console.log('Giriş yapılıyor:', { email, password });
+    setLoading(true);
 
     
-    navigate('/home');  //na sayfaya yönlendir
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      alert('Giriş hatası: ' + error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data.user) {
+      alert('Giriş başarılı!');
+      navigate('/home'); 
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -36,7 +54,9 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <button type="submit">Giriş Yap</button>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
+            </button>
           </form>
           <p>Hesabınız yok mu? <Link to="/signup">Kayıt Ol</Link></p>
         </div>

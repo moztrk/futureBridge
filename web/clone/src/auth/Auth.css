@@ -1,144 +1,220 @@
+
 :root {
-    --primary-color: #2563EB;
-    --secondary-color: #6B7280;
-    --background-color: #F3F4F6;
-    --white: #FFFFFF;
-  }
+  --primary-color: #2563EB;
+  --secondary-color: #6B7280;
+  --background-color: #F3F4F6;
+  --white: #FFFFFF;
+}
+
+.auth-container {
+  display: flex;
   
-  .auth-container {
-    display: flex;
-    height: 100vh;
-    width: 100vw;
-  }
+  min-height: 100vh; 
+  width: 100vw;
+}
+
+.auth-section {
+  width: 25%;
   
-  /* Login/Kayıt Alanı */
-  .auth-box {
-    background: var(--white);
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    width: 100%;
-    max-width: 350px;
-    position: relative;
-    z-index: 2;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--background-color);
+  padding: 2rem; 
+  box-sizing: border-box; 
+}
+
+.auth-box {
+  background: var(--white);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 100%;
+  max-width: 350px;
+  position: relative;
+  z-index: 2;
+}
+
+.auth-box h2 {
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.auth-box form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-box input {
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid var(--secondary-color);
+  border-radius: 5px;
+}
+
+.auth-box button {
+  background: var(--primary-color);
+  color: var(--white);
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.auth-box button:hover {
+  background: #1E40AF;
+}
+
+.auth-box p {
+  margin-top: 10px;
+  color: var(--secondary-color);
+}
+
+.auth-box a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* Tanıtım Alanı */
+.intro-section {
+  flex: 1; 
+  background: linear-gradient(to right, #2563EB, #1E40AF);
+  color: var(--white);
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: flex-start;
+  text-align: left;
+  padding: 4rem;
+  position: relative;
+  box-sizing: border-box; 
+}
+
+.intro-section h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  animation: fadeInDown 1s ease-in-out;
+}
+
+.intro-section p {
+  font-size: 1.2rem;
   
-  .auth-section {
-    width: 25%;
-    padding: auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--background-color);
-  }
-  
-  .auth-box h2 {
-    color: var(--primary-color);
-    margin-bottom: 1rem;
-  }
-  
-  .auth-box form {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .auth-box input {
-    padding: 10px;
-    margin: 8px 0;
-    border: 1px solid var(--secondary-color);
-    border-radius: 5px;
-  }
-  
-  .auth-box button {
-    background: var(--primary-color);
-    color: var(--white);
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-  
-  .auth-box button:hover {
-    background: #1E40AF;
-  }
-  
-  .auth-box p {
-    margin-top: 10px;
-    color: var(--secondary-color);
-  }
-  
-  .auth-box a {
-    color: var(--primary-color);
-    text-decoration: none;
-    font-weight: bold;
-  }
-  
-  /* Tanıtım Alanı */
-  .intro-section {
-    flex: 1;
-    background: linear-gradient(to right, #2563EB, #1E40AF);
-    color: var(--white);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: flex-start;
-    text-align: left;
-    padding: 4rem;
-    position: relative;
-  }
-  
-  .intro-section h1 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    animation: fadeInDown 1s ease-in-out;
-  }
-  
-  .intro-section p {
-    font-size: 1.2rem;
-    max-width: 6000px;
-    line-height: 1.6;
-    animation: fadeInUp 1.2s ease-in-out;
-  }
-  
-  /* Buton */
-  .cta-button {
-    margin-top: 1.5rem;
-    padding: 12px 24px;
-    background-color: var(--white);
-    color: var(--primary-color);
-    font-weight: bold;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: transform 0.2s ease-in-out;
-  }
-  
-  .cta-button:hover {
-    transform: scale(1.05);
-  }
-  
-  /* Animasyonlar */
-  @keyframes fadeInDown {
-    from {
+  max-width: 800px; 
+  line-height: 1.6;
+  animation: fadeInUp 1.2s ease-in-out;
+}
+
+
+.cta-button {
+  margin-top: 1.5rem;
+  padding: 12px 24px;
+  background-color: var(--white);
+  color: var(--primary-color);
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.cta-button:hover {
+  transform: scale(1.05);
+}
+
+/* Animasyonlar */
+@keyframes fadeInDown {
+  from {
       opacity: 0;
       transform: translateY(-30px);
-    }
-    to {
+  }
+  to {
       opacity: 1;
       transform: translateY(0);
-    }
   }
-  
-  @keyframes fadeInUp {
-    from {
+}
+
+@keyframes fadeInUp {
+  from {
       opacity: 0;
       transform: translateY(30px);
-    }
-    to {
+  }
+  to {
       opacity: 1;
       transform: translateY(0);
-    }
   }
+}
+
+
+
+/* Genellikle tablet ve altı için bir breakpoint (örneğin 768px) */
+@media (max-width: 768px) {
+  .auth-container {
+   
+    flex-direction: column;
+    /* Yüksekliği otomatik ayarlıyoruz ki içerik sığmazsa scroll oluşsun */
+    height: auto;
+    min-height: 100vh; 
+  }
+
+  .auth-section {
+    
+    width: 100%;
+   
+    padding: 3rem 1.5rem;
   
+    order: 1; 
+  }
+
+  .intro-section {
+    /* Genişliği tam ekran yapıyoruz */
+    width: 100%;
+    
+    padding: 3rem 1.5rem;
+    
+    align-items: center; 
+    text-align: center; 
+    min-height: 50vh; 
+    justify-content: center; 
+    order: 2; 
+  }
+
+  .intro-section h1 {
+    
+    font-size: 2rem;
+  }
+
+  .intro-section p {
+    
+    font-size: 1rem;
+    max-width: 100%; 
+  }
+
+  .auth-box {
+    
+    padding: 1.5rem;
+    
+  }
+}
+
+/* Daha küçük telefonlar için ek ayarlamalar  */
+@media (max-width: 480px) {
+  .auth-section {
+    padding: 2rem 1rem;
+  }
+  .intro-section {
+    padding: 2rem 1rem;
+    min-height: 40vh; 
+  }
+  .intro-section h1 {
+    font-size: 1.8rem;
+  }
+  .intro-section p {
+    font-size: 0.9rem;
+  }
+  .auth-box h2 {
+    font-size: 1.3rem; 
+  }
+}
