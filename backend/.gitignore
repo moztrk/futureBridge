@@ -1,0 +1,10 @@
+# == Backend Specific Ignores ==
+.env
+.env.*
+__pycache__/
+*.pyc
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+# Backend'de ignore etmek istediğiniz başka şeyler varsa buraya ekleyebilirsiniz
