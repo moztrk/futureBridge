@@ -1,0 +1,40 @@
+# == Proje Genel ==
+.env                  # Hassas bilgileri içeren ortam değişkenleri dosyası - ÇOK ÖNEMLİ!
+.env.* # Farklı ortamlar için .env varyantları (örn: .env.local, .env.production)
+
+# == Python / Django ==
+__pycache__/          # Python bytecode cache klasörleri
+*.pyc                 # Python bytecode dosyaları
+*.sqlite3             # Eğer yerel geliştirme için SQLite kullanıyorsanız
+venv/                 # Sanal ortam klasörü - ÇOK ÖNEMLİ!
+.venv/                # Alternatif sanal ortam klasör ismi
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Django Özeli
+# collectstatic sonrası oluşan klasörler (genellikle git'e eklenmez)
+static_cdn/
+media_cdn/
+
+# == Node.js (Frontend klasörleri için geçerli olabilir: web, mobile) ==
+# Önceki genel kuralları kaldırdık, şimdi sadece git status'un listelediği yolu ignore etmeyi deneyelim
+mobil/Clone/node_modules/ # git status'un listelediği tam yolu ignore et
+
+npm-debug.log
+yarn-error.log
+package-lock.json     # Genellikle git'e eklenir (bağımlılık versiyonlarını sabitlemek için) - ignore ETMEYİN!
+yarn.lock             # Genellikle git'e eklenir (bağımlılık versiyonlarını sabitlemek için) - ignore ETMEYİN!
+build/                # Frontend build output klasörleri
+dist/                 # Frontend dist output klasörleri
+.eslintcache
+
+# == IDE / Editor Özel Dosyalar ==
+.vscode/              # VS Code ayarları (duruma göre bazıları eklenir, bazıları ignore edilir)
+.idea/                # JetBrains IDE (PyCharm, WebStorm) ayarları
+*.swp                 # Vim swap files
+*.swo
+*~                    # Backup files
+
+# == İşletim Sistemi Özel ==
+.DS_Store             # macOS özeli
+Thumbs.db             # Windows özeti
