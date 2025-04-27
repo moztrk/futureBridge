@@ -1,344 +1,484 @@
+/* --- Genel Ayarlar ve Değişkenler --- */
 :root {
-    --primary-color: #2563EB;
-    --secondary-color: #6B7280;
-    --background-color: #F3F4F6;
-    --white: #FFFFFF;
-}
-
-*, *::before, *::after {
+    --header-height: 60px; /* Header yüksekliğini tanımla */
+    --primary-color: #0A66C2; /* LinkedIn mavisine yakın */
+    --primary-darker: #004182;
+    --secondary-color: #666666;
+    --background-color: #f3f4f6; /* Daha açık gri tonu */
+    --card-background: #FFFFFF;
+    --border-color: #e0e2e5;
+    --text-color: #1c1c1c; /* Siyaha yakın */
+    --text-secondary: rgba(0, 0, 0, 0.6); /* İkincil metinler */
+    --hover-background: rgba(0, 0, 0, 0.05); /* Hover için hafif arka plan */
+  }
+  
+  /* Global Box Sizing ve Reset */
+  *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
-    padding: 0; 
-}
-
-body {
+    padding: 0;
+  }
+  
+  body {
     background-color: var(--background-color);
-    padding-top: var(--header-height); 
-    font-family: sans-serif; 
-}
-
-.header-bar {
-    background-color: var(--primary-color);
-    height: var(--header-height); 
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center; 
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1000;
-    padding: 0 1rem; 
-}
-
-.header-nav {
-    display: flex;
-    justify-content: flex-start; 
-    gap: 20px; 
-    width: 100%;
-    max-width: 1200px;
-    align-items: center; 
-}
-
-.header-link {
-    color: white;
-    text-decoration: none;
-    padding: 10px 15px; 
-    border-radius: 4px; 
-    transition: background-color 0.2s ease; 
-}
-
-.header-link:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-
-.home-container {
-    text-align: center;
-    padding: 40px 1rem 20px 1rem; 
-}
-
-.home-h1 {
-    font-size: 2.8em; 
-    line-height: 1.2;
-    color: #333; 
-}
-
-.feed-container {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    max-width: 800px;
-    margin: 0 auto 40px auto;
-    padding: 0 1rem;
-}
-
-.post {
-    background-color: var(--white);
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
-    width: 100%;
-}
-
-.post-header {
+    
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* Daha iyi font stack */
+    color: var(--text-color);
+    line-height: 1.5;
+  }
+  
+  a { /* Genel link stili */
+      color: var(--primary-color);
+      text-decoration: none;
+  }
+  a:hover {
+      text-decoration: underline;
+  }
+  
+  button { /* Genel buton stili */
+      font-family: inherit;
+      cursor: pointer;
+  }
+  
+  /* --- Header Alanı (Yeniden Tasarlandı) --- */
+  .header-bar {
+    background-color: #fff; /* Beyaz arka plan */
+    border-bottom: 1px solid #e0e0e0; /* Alt çizgi */
+    padding: 0 20px; /* Yatay boşluk */
+    height: 60px; /* Yükseklik */
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 15px;
-}
-
-.post-header img {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-}
-
-.post-header h3 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #333;
-}
-
-.post-content {
-    font-size: 1rem;
-    color: #444;
-    line-height: 1.6;
-}
-
-.post-actions {
-    margin-top: 15px;
+    justify-content: center; /* İçeriği yatayda ortala */
+    width: 100%;
+  }
+  
+  .header-content {
     display: flex;
-    gap: 25px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
-}
-
-.post-actions button {
+    justify-content: space-between; /* Sol ve sağ grupları ayır */
+    align-items: center;
+    width: 100%;
+    max-width: 1100px; /* Maksimum genişlik */
+  }
+  
+  .header-left {
+    display: flex;
+    align-items: center;
+  }
+  
+  .header-logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2563EB; /* Mavi renk */
+    text-decoration: none; /* Alt çizgi olmasın */
+    margin-right: 20px; /* Logo ile arama çubuğu veya nav arası boşluk */
+  }
+  
+  .header-nav {
+    display: flex;
+    align-items: center;
+  }
+  
+  .header-link {
+    display: flex;
+    align-items: center; /* İkon ve metni dikeyde ortala */
+    text-decoration: none;
+    color: #555; /* Varsayılan link rengi */
+    padding: 0 10px; /* Linkler arası yatay boşluk */
+    height: 60px; /* Header yüksekliği ile aynı yükseklik */
+    border-bottom: 2px solid transparent; /* Aktif link için alt çizgi */
+    transition: color 0.3s ease, border-bottom-color 0.3s ease;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .header-link:hover {
+    color: #333; /* Hover rengi */
+    border-bottom-color: #e0e0e0; /* Hafif alt çizgi */
+  }
+  
+  .header-link.active {
+    color: #2563EB; /* Mavi aktif renk */
+    border-bottom-color: #2563EB; /* Mavi alt çizgi */
+  }
+  
+  .header-link i {
+    margin-right: 6px; /* İkon ve metin arası boşluk */
+  }
+  
+  .logout-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    height: 60px;
+    transition: color 0.3s ease;
+  }
+  
+  .logout-button:hover {
+    color: #d93025; /* Çıkış yap hover rengi */
+  }
+  
+  .header-avatar {
+    width: 28px; /* Avatar boyutu */
+    height: 28px;
+    border-radius: 50%; /* Tam yuvarlak */
+    object-fit: cover; /* Resmin tam sığmasını sağla */
+    margin-bottom: 2px; /* Metinle hizalamak için hafif aşağı al */
+    margin-right: 6px; /* Avatar ve metin arası boşluk */
+    border: 1px solid #ccc; /* Hafif kenarlık */
+  }
+  
+  /* --- Ana İçerik Alanı --- */
+  .content-container {
+    max-width: 1128px; /* Header ile aynı genişlik */
+    margin: 20px auto; /* Üst/Alt boşluk, yanlar otomatik (ortala) */
+    padding: 0 1.5rem; /* Yan boşluklar */
+    display: grid; /* İsteğe bağlı: Yan paneller eklenirse grid kullanılabilir */
+    grid-template-columns: 1fr; /* Şimdilik tek sütun */
+    gap: 20px; /* Sütunlar arası boşluk */
+  }
+  
+  /* Eğer sol/sağ panel eklenecekse grid-template-columns ayarlanır */
+  /* @media (min-width: 768px) {
+    .content-container { grid-template-columns: 225px 1fr; }
+  }
+  @media (min-width: 992px) {
+    .content-container { grid-template-columns: 225px 1fr 300px; }
+  } */
+  
+  /* --- Feed (Akış) Alanı --- */
+  .feed-container {
+    /* Artık .content-container içinde yer alıyor, max-width vb. oradan geliyor */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Bileşenler arası boşluk (create-post, post vb.) */
+  }
+  
+  /* --- Yeni Gönderi Oluşturma Kutusu --- */
+  .create-post-box {
+      background-color: var(--card-background);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+      border: 1px solid var(--border-color);
+  }
+  
+  .create-post-input-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+  }
+  
+  .create-post-avatar { /* Kullanıcının küçük avatarı */
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover; /* Resmin orantısını koru */
+  }
+  
+  .create-post-input-button { /* Tıklanabilir alan */
+      flex-grow: 1;
+      padding: 12px 15px;
+      border: 1px solid #b0b1b3;
+      border-radius: 30px; /* Hap şeklinde */
+      background: none;
+      text-align: left;
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      cursor: text; /* Metin girişi imleci */
+      transition: background-color 0.2s ease;
+  }
+  .create-post-input-button:hover {
+      background-color: var(--hover-background);
+  }
+  
+  .create-post-expanded { /* Tıklayınca açılan/görünen alan */
+      margin-top: 15px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 15px;
+  }
+  
+  .create-post-textarea {
+      width: 100%;
+      min-height: 80px;
+      border: none; /* Kenarlık olmasın */
+      outline: none; /* Tıklayınca çıkan outline */
+      font-size: 1rem;
+      resize: vertical; /* Sadece dikey boyutlama */
+      margin-bottom: 10px;
+      line-height: 1.6;
+  }
+  
+  .create-post-actions {
+      display: flex;
+      justify-content: space-between; /* Butonlar arası boşluk veya sağa yaslama */
+      align-items: center;
+  }
+  
+  .create-post-media-buttons { /* Foto/video ekleme butonları */
+      display: flex;
+      gap: 10px;
+  }
+  
+  .create-post-media-buttons button {
+      background: none;
+      border: none;
+      padding: 8px;
+      border-radius: 50%;
+      color: var(--text-secondary);
+      transition: background-color 0.2s ease;
+  }
+  .create-post-media-buttons button:hover {
+      background-color: var(--hover-background);
+  }
+  .create-post-media-buttons i { /* İkon fontları için */
+      font-size: 1.4rem;
+      display: block;
+  }
+  
+  .create-post-share-button {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 20px; /* Hap şeklinde */
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+  }
+  
+  .create-post-share-button:disabled {
+      background-color: #b0d1f0; /* Soluk mavi */
+      cursor: not-allowed;
+  }
+  .create-post-share-button:not(:disabled):hover {
+      background-color: var(--primary-darker);
+  }
+  
+  
+  /* --- Gönderi Stilleri --- */
+  .post {
+    background-color: var(--card-background);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border-color);
+  }
+  
+  .post-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .post-header img { /* PostItem componentinden gelecek */
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  .post-author-info {
+      flex-grow: 1;
+  }
+  
+  .post-author-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 2px;
+  }
+  .post-author-name:hover {
+      text-decoration: underline;
+  }
+  
+  .post-author-headline, .post-timestamp { /* Ekstra bilgiler */
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+  
+  .post-options-button { /* Üç nokta butonu */
+      background: none;
+      border: none;
+      color: var(--secondary-color);
+      padding: 5px;
+      border-radius: 50%;
+  }
+  .post-options-button:hover {
+      background-color: var(--hover-background);
+  }
+  
+  .post-content {
+    font-size: 0.95rem;
+    color: var(--text-color);
+    line-height: 1.6;
+    margin-bottom: 10px;
+    /* Linkleri, hashtagleri vb. stilize etmek için ek kurallar gerekebilir */
+    white-space: pre-wrap; /* Satır sonlarını ve boşlukları koru */
+  }
+  
+  .post-image { /* Gönderi resmi varsa */
+      width: 100%;
+      max-height: 500px; /* Maksimum yükseklik */
+      object-fit: cover; /* Resmi sığdır */
+      border: 1px solid var(--border-color);
+      margin-block: 10px; /* Üst ve alt boşluk */
+  }
+  
+  .post-stats { /* Beğeni, yorum sayısı */
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      padding-block: 8px; /* Üst/Alt boşluk */
+  }
+  .post-stats span:hover {
+      color: var(--primary-color);
+      text-decoration: underline;
+      cursor: pointer;
+  }
+  
+  
+  .post-actions {
+    display: flex;
+    justify-content: space-around; /* Butonları eşit dağıt */
+    gap: 5px;
+    padding-top: 8px;
+    margin-top: 8px;
+    border-top: 1px solid var(--border-color);
+  }
+  
+  .post-action-button {
     background-color: transparent;
     border: none;
     cursor: pointer;
-    font-size: 0.95rem;
-    color: var(--secondary-color);
+    padding: 10px 5px; /* Dokunma alanını genişlet */
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
-    gap: 5px;
-    transition: color 0.2s ease;
-}
-
-.post-actions button:hover {
-    color: var(--primary-color);
-}
-
-.comment-section {
-    width: 100%;
-    margin-top: 20px;
-    border-top: 1px solid #eee;
-    padding-top: 15px;
-}
-
-.comment-input-wrapper {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.comment-section input {
-    flex-grow: 1;
-    padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 15px;
-    font-size: 0.9rem;
-}
-
-.comment-section .comments {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.comment {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
-
-.comment img {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    margin-top: 2px;
-}
-
-.comment-content {
-    background-color: #f1f1f1;
-    padding: 8px 12px;
-    border-radius: 10px;
-    flex-grow: 1;
-}
-
-.comment-content strong {
-    display: block;
-    font-size: 0.9rem;
+    gap: 6px;
+    transition: background-color 0.2s ease;
+    flex-grow: 1; /* Butonlar eşit genişlesin */
+    justify-content: center; /* İçeriği ortala */
     font-weight: 600;
-    margin-bottom: 3px;
-    color: #333;
-}
-
-.comment-content p {
-    font-size: 0.9rem;
-    color: #555;
-    line-height: 1.5;
-}
-
-@media (max-width: 768px) {
+  }
+  
+  .post-action-button:hover {
+    background-color: var(--hover-background);
+  }
+  .post-action-button i { /* İkon fontları için */
+      font-size: 1.2rem;
+  }
+  
+  /* --- Mesaj Stilleri --- */
+  .loading-message,
+  .error-message,
+  .no-posts-message {
+    text-align: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    font-size: 1rem;
+    color: var(--text-secondary);
+  }
+  
+  .error-message {
+    color: #d93025; /* Kırmızı */
+  }
+  
+  /* --- Modal (Artık Kullanılmıyor) --- */
+  /* .modal-overlay, .modal-content { display: none; } */
+  
+  
+  /* === MOBİL UYUMLULUK === */
+  
+  /* Tabletler (Örnek: 992px altı) */
+  @media (max-width: 992px) {
+      .content-container {
+          max-width: none; /* Tam genişlik */
+          /* grid-template-columns: 1fr; Yan panelleri gizle */
+          padding: 0 1rem; /* Yan boşlukları azalt */
+          margin-top: 15px;
+      }
+      .header-bar {
+          padding: 0 1rem;
+      }
+  }
+  
+  /* Büyük Telefonlar (Örnek: 768px altı) */
+  @media (max-width: 768px) {
     :root {
-        --header-height: 56px;
+      --header-height: 56px; /* Header yüksekliği */
     }
-
-    body {
-        padding-top: var(--header-height);
-    }
-
-    .header-bar {
-        height: var(--header-height);
-        padding: 0 0.8rem;
-    }
-
-    .header-nav {
-        gap: 10px;
-    }
-
+  
+   
+   
     .header-link {
-        padding: 8px 10px;
-        font-size: 0.95rem;
+        padding: 6px;
     }
-
-    .home-container {
-        padding: 30px 1rem 15px 1rem;
+  
+    .content-container {
+        padding: 0 0.8rem; /* Yan boşlukları azalt */
     }
-
-    .home-h1 {
-        font-size: 2.2em;
-    }
-
-    .feed-container {
-        gap: 20px;
-        padding: 0 0.8rem;
-        margin-bottom: 30px;
-    }
-
-    .post {
-        padding: 15px;
-        border-radius: 6px;
-    }
-
-    .post-header img {
+  
+    .create-post-avatar {
         width: 40px;
         height: 40px;
     }
-
-    .post-header h3 {
-        font-size: 1rem;
-    }
-
-    .post-content {
-        font-size: 0.95rem;
-    }
-
-    .post-actions {
-        gap: 20px;
-        padding-top: 12px;
-        margin-top: 12px;
-    }
-
-    .post-actions button {
+    .create-post-input-button {
         font-size: 0.9rem;
     }
-
-    .comment-section input {
-        font-size: 0.85rem;
-    }
-
-    .comment img {
-        width: 30px;
-        height: 30px;
-    }
-
-    .comment-content p, .comment-content strong {
-        font-size: 0.85rem;
-    }
-}
-
-@media (max-width: 480px) {
-    :root {
-        --header-height: 50px;
-    }
-
-    body {
-        padding-top: var(--header-height);
-    }
-
-    .header-bar {
-        height: var(--header-height);
-        padding: 0 0.5rem;
-    }
-
-    .header-nav {
-        gap: 5px;
-    }
-
-    .header-link {
-        padding: 6px 8px;
-        font-size: 0.9rem;
-    }
-
-    .home-container {
-        padding: 25px 0.5rem 10px 0.5rem;
-    }
-
-    .home-h1 {
-        font-size: 1.8em;
-    }
-
-    .feed-container {
-        gap: 15px;
-        padding: 0 0.5rem;
-        margin-bottom: 20px;
-    }
-
+  
     .post {
-        padding: 12px;
-        border-radius: 4px;
+      border-radius: 0; /* Mobilde tam genişlik için köşeleri kaldır */
+      margin-inline: -0.8rem; /* Padding'i sıfırlamak için negatif margin */
+      box-shadow: none;
+      border-left: none;
+      border-right: none;
     }
-
-    .post-header {
-        gap: 10px;
-        margin-bottom: 12px;
-    }
-
+    .post:first-child { border-top: 1px solid var(--border-color); } /* İlk posta üst çizgi */
+  
     .post-header img {
-        width: 35px;
-        height: 35px;
+      width: 40px;
+      height: 40px;
     }
-
-    .post-header h3 {
-        font-size: 0.95rem;
-    }
-
-    .post-content {
-        font-size: 0.9rem;
-        line-height: 1.5;
-    }
-
-    .post-actions {
-        gap: 15px;
-    }
-
-    .comment-input-wrapper {
-        margin-bottom: 12px;
-    }
-
-    .comment-section .comments {
-        gap: 10px;
-    }
-}
+  
+  }
+  
+  /* Küçük Telefonlar (Örnek: 480px altı) */
+  @media (max-width: 480px) {
+     :root {
+        --header-height: 52px;
+     }
+     .header-bar {
+        padding: 0 0.5rem;
+     }
+     .header-logo {
+         font-size: 1.5rem; /* Logoyu küçült */
+     }
+     
+     .content-container {
+        padding: 0 0.5rem;
+     }
+     .post {
+        margin-inline: -0.5rem; /* Padding'i sıfırlamak için negatif margin */
+     }
+     .post-content, .post-author-name, .post-action-button {
+         font-size: 0.85rem; /* Metinleri biraz küçült */
+     }
+     .post-header img {
+         width: 36px;
+         height: 36px;
+     }
+     .post-author-headline, .post-timestamp, .post-stats {
+         font-size: 0.75rem;
+     }
+  }

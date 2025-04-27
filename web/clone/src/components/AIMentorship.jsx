@@ -7,7 +7,7 @@ const AIMentorship = () => {
   const navigate = useNavigate(); // sayfa yönlendirmeleri için navigate kullanıyoruz
 
   const handleBookAppointment = () => {
-    
+    // Randevu alma işlemi (örneğin, kullanıcıyı bir randevu sayfasına yönlendirebiliriz)
     navigate(`/book-appointment/${mentorId}`);
   };
 

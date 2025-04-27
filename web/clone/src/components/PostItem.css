@@ -1,0 +1,116 @@
+/* styles/PostItem.css */
+.post-item {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px; /* Gönderiler arası boşluk */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Hafif gölge */
+    border: 1px solid #e0e0e0; /* İnce kenarlık */
+  }
+  
+  .post-header {
+    display: flex; /* Avatar ve bilgi yan yana */
+    align-items: center; /* Dikeyde ortala */
+    margin-bottom: 10px;
+  }
+  
+  .post-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%; /* Tam yuvarlak */
+    margin-right: 12px;
+    background-color: #e0e0e0; /* Placeholder renk */
+    object-fit: cover; /* Resimlerin bozulmadan sığması için */
+  }
+  
+  .author-info {
+    flex-grow: 1; /* Kalan alanı kapla */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .author-nickname {
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+    margin: 0; /* Default margin'leri kaldır */
+    padding: 0;
+  }
+  
+  .post-date {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px; /* Nickname ile arasına boşluk */
+  }
+  
+  .post-content {
+    font-size: 15px;
+    color: #333;
+    line-height: 1.5; /* Okunurluk için satır yüksekliği */
+    margin-bottom: 10px;
+    word-wrap: break-word; /* Uzun kelimeleri kırma */
+    white-space: pre-line; /* Satır sonlarını koru */
+  }
+  
+  /* Resim alanı için düzgün stil */
+  .post-image {
+    width: 100%;
+    max-height: 400px; /* Maksimum yükseklik */
+    border-radius: 8px;
+    margin-bottom: 10px;
+    object-fit: contain; /* Resmi orantılı şekilde göster */
+    background-color: #f5f5f5; /* Yüklenene kadar arkaplan */
+  }
+  
+  /* Etkileşim butonları */
+  .post-actions {
+    display: flex;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+    margin-top: 10px;
+  }
+  
+  .action-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    font-size: 14px;
+    color: #666;
+    padding: 5px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+  
+  .action-button:hover {
+    color: #2563EB; /* Hover rengi */
+    background-color: #f0f5ff; /* Hafif arkaplan */
+  }
+  
+  .action-button svg {
+    margin-right: 5px; /* İkon ile metin arası boşluk */
+  }
+  
+  /* Responsive düzenlemeler */
+  @media (max-width: 480px) {
+    .post-item {
+      padding: 12px;
+      border-radius: 6px;
+    }
+    
+    .post-avatar {
+      width: 36px;
+      height: 36px;
+    }
+    
+    .author-nickname {
+      font-size: 14px;
+    }
+    
+    .post-content {
+      font-size: 14px;
+    }
+  }

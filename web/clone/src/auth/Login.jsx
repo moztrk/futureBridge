@@ -13,7 +13,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
-    
+    // Supabase Authentication ile giriş yap
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -25,10 +25,35 @@ const Login = () => {
       return;
     }
 
-    if (data.user) {
+    // Giriş başarılı olduğunda (error yoksa ve data.user doluysa)
+    if (data && data.user) { // data objesinin varlığını da kontrol etmek iyi olabilir
       alert('Giriş başarılı!');
-      navigate('/home'); 
+
+      // *** JWT TOKEN BURADA! ***
+      console.log('Giriş Başarılı Data:', data); // İsteğe bağlı: Tüm data objesini görmek isterseniz
+      if (data.session && data.session.access_token) {
+         const jwtToken = data.session.access_token;
+         console.log('-----------------------------------------');
+         console.log('SUPABASE JWT TOKEN (TEST İÇİN KOPYALA):');
+         console.log(jwtToken); // <<-- BU SATIR TOKENI KONSOLA YAZAR!
+         console.log('-----------------------------------------');
+
+         // *** Yönlendirmeden önce tokenı buradan kopyalayabilirsiniz! ***
+
+      } else {
+         console.warn('Giriş başarılı görünüyor ancak session veya access_token data objesinde bulunamadı.');
+      }
+
+      // Yönlendirme
+      navigate('/home');
+
+    } else {
+        // Başarılı response geldi ama user objesi gelmediyse (nadiren olur)
+        console.warn("Giriş işlemi tamamlandı ancak kullanıcı bilgisi dönmedi.", data);
+         // Hata yok ama kullanıcı da yoksa ne yapılacağına karar verin
+        alert('Giriş işlemi beklenenden farklı sonuçlandı.');
     }
+
 
     setLoading(false);
   };

@@ -1,4 +1,4 @@
-
+/* Mevcut Stilleriniz (Değişiklik Yok) */
 :root {
   --primary-color: #2563EB;
   --secondary-color: #6B7280;
@@ -8,20 +8,20 @@
 
 .auth-container {
   display: flex;
-  
-  min-height: 100vh; 
+  /* Başlangıçta yüksekliği 100vh olarak bırakalım, mobilde değiştireceğiz */
+  min-height: 100vh; /* min-height kullanmak daha esnek olabilir */
   width: 100vw;
 }
 
 .auth-section {
   width: 25%;
-  
+  /* padding: auto; -> Bu geçerli bir CSS değeri değil, flex ile hizalama yapılıyor */
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: var(--background-color);
-  padding: 2rem; 
-  box-sizing: border-box; 
+  padding: 2rem; /* Kenarlara biraz boşluk ekleyelim */
+  box-sizing: border-box; /* Padding'in genişliği etkilememesi için */
 }
 
 .auth-box {
@@ -80,17 +80,17 @@
 
 /* Tanıtım Alanı */
 .intro-section {
-  flex: 1; 
+  flex: 1; /* Kalan alanı kaplaması için */
   background: linear-gradient(to right, #2563EB, #1E40AF);
   color: var(--white);
   display: flex;
   flex-direction: column;
-  justify-content: center; 
+  justify-content: center; /* İçeriği dikeyde ortalayabiliriz */
   align-items: flex-start;
   text-align: left;
   padding: 4rem;
   position: relative;
-  box-sizing: border-box; 
+  box-sizing: border-box; /* Padding'in genişliği etkilememesi için */
 }
 
 .intro-section h1 {
@@ -101,13 +101,13 @@
 
 .intro-section p {
   font-size: 1.2rem;
-  
-  max-width: 800px; 
+  /* max-width: 6000px; -> Genellikle gereksiz, flex item olduğu için zaten sığacaktır */
+  max-width: 800px; /* Okunabilirlik için bir max-width eklemek iyi olabilir */
   line-height: 1.6;
   animation: fadeInUp 1.2s ease-in-out;
 }
 
-
+/* Buton */
 .cta-button {
   margin-top: 1.5rem;
   padding: 12px 24px;
@@ -147,66 +147,67 @@
   }
 }
 
-
+/* === MOBİL UYUMLULUK İÇİN EKLENEN STİLLER === */
 
 /* Genellikle tablet ve altı için bir breakpoint (örneğin 768px) */
 @media (max-width: 768px) {
   .auth-container {
-   
+    /* Flex yönünü dikey yapıyoruz */
     flex-direction: column;
     /* Yüksekliği otomatik ayarlıyoruz ki içerik sığmazsa scroll oluşsun */
     height: auto;
-    min-height: 100vh; 
+    min-height: 100vh; /* Yine de en az ekran yüksekliğinde olmasını sağlayalım */
   }
 
   .auth-section {
-    
+    /* Genişliği tam ekran yapıyoruz */
     width: 100%;
-   
+    /* Üst ve alt boşluğu ayarlayabiliriz, yan boşluklar kalsın */
     padding: 3rem 1.5rem;
-  
-    order: 1; 
+    /* Dikeyde sıralandığı için belirli bir yükseklik vermeye gerek yok */
+    /* Flex hizalamaları (align-items, justify-content) hala çalışır */
+    order: 1; /* İsterseniz giriş bölümünü alta almak için 2 yapabilirsiniz */
   }
 
   .intro-section {
     /* Genişliği tam ekran yapıyoruz */
     width: 100%;
-    
+    /* Üst ve alt boşluğu biraz azaltabiliriz */
     padding: 3rem 1.5rem;
-    
-    align-items: center; 
-    text-align: center; 
-    min-height: 50vh; 
-    justify-content: center; 
-    order: 2; 
+    /* İçeriğin hizalamasını ortalayabiliriz veya solda bırakabiliriz */
+    align-items: center; /* İçeriği yatayda ortalamak için */
+    text-align: center; /* Metni ortalamak için */
+    min-height: 50vh; /* Tanıtım alanının en azından bir miktar yer kaplaması için */
+    justify-content: center; /* Dikeyde ortalama devam etsin */
+    order: 2; /* İsterseniz tanıtım bölümünü alta almak için 1 yapabilirsiniz */
   }
 
   .intro-section h1 {
-    
+    /* Mobil için font boyutunu biraz küçültebiliriz */
     font-size: 2rem;
   }
 
   .intro-section p {
-    
+    /* Mobil için font boyutunu biraz küçültebiliriz */
     font-size: 1rem;
-    max-width: 100%; 
+    max-width: 100%; /* Ortalandığı için max-width'i kaldırabiliriz */
   }
 
   .auth-box {
-    
+    /* Mobil için padding'i biraz ayarlayabiliriz */
     padding: 1.5rem;
-    
+    /* Max genişlik mobil için uygun görünüyor, değiştirmeye gerek yok */
   }
 }
 
-/* Daha küçük telefonlar için ek ayarlamalar  */
+/* Daha küçük telefonlar için ek ayarlamalar (isteğe bağlı) */
 @media (max-width: 480px) {
   .auth-section {
     padding: 2rem 1rem;
   }
   .intro-section {
     padding: 2rem 1rem;
-    min-height: 40vh; 
+    min-height: 40vh; /* Daha küçük ekranlarda tanıtım alanı yüksekliğini ayarlayalım */
   }
   .intro-section h1 {
     font-size: 1.8rem;
@@ -215,6 +216,6 @@
     font-size: 0.9rem;
   }
   .auth-box h2 {
-    font-size: 1.3rem; 
+    font-size: 1.3rem; /* Başlığı da küçültebiliriz */
   }
 }

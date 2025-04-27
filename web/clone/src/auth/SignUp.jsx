@@ -20,7 +20,7 @@ const SignUp = () => {
 
     setLoading(true);
 
-   
+    // Supabase Authentication ile kullanıcıyı kaydet
     const { data, error } = await supabase.auth.signUp({
       email,
       password,  // Supabase kendi hash'leyecek
@@ -35,13 +35,13 @@ const SignUp = () => {
     const user = data.user;
     
     if (user) {
-     
+      // Kullanıcıyı "users" tablosuna ekle
       const { error: insertError } = await supabase.from('users').insert([
         {
           id: user.id,
           email: user.email,
           username: email.split('@')[0],  
-          password: password, 
+          password: password,  // Bcrypt yerine düz şifre kaydediyoruz (Supabase hash'leyecek)
           created_at: new Date(),
           updated_at: new Date(),
         }

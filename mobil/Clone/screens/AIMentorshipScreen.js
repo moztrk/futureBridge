@@ -3,6 +3,8 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 
 const AIMentorshipScreen = () => {
   const handleBookAppointment = () => {
+    // Burada randevu alma işlemini gerçekleştirecek kodunuzu yazabilirsiniz.
+    // Örneğin, kullanıcıyı başka bir ekrana yönlendirebilirsiniz.
     console.log('Randevu Alındı!');
   };
 
@@ -10,10 +12,11 @@ const AIMentorshipScreen = () => {
     <View style={styles.mentorshipContainer}>
       <View style={styles.mentorshipHeader}>
         <Text style={styles.headerTitle}>AI Mentorluk Paneli</Text>
-        <Text style={styles.headerSubtitle}>kariyeriniziaa hedeflerinize göre kişiselleştirilmiş yol haritaları oluşturun.</Text>
+        <Text style={styles.headerSubtitle}>Kariyer hedeflerinize göre kişiselleştirilmiş yol haritaları oluşturun.</Text>
       </View>
 
       <View style={styles.mentorshipBody}>
+        {/* Mentor Kartları */}
         <View style={styles.mentorCard}>
           <Text style={styles.mentorName}>Mentor: Dr. Ahmet Yılmaz</Text>
           <Text style={styles.mentorSpeciality}>Yapay zeka ve veri bilimi uzmanı</Text>
@@ -66,7 +69,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginTop: 30,
     gap: 20,
-    flexWrap: 'wrap',
+    flexWrap: 'wrap', // Küçük ekranlarda kartların alt alta gelmesini sağlar
   },
   mentorCard: {
     backgroundColor: '#FFFFFF',
@@ -78,7 +81,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     alignItems: 'center',
-    width: '45%',
+    width: '45%', // İki kartın yan yana sığması için
     marginBottom: 20,
   },
   mentorName: {
