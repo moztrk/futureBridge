@@ -1,120 +1,301 @@
 :root {
-    --primary-color: #2563EB;
-    --secondary-color: #6B7280;
-    --background-color: #F3F4F6;
-    --white: #FFFFFF;
-    --hover-color: #1E40AF;
+  --primary-color: #2563EB;
+  --primary-darker: #1E40AF;
+  --primary-gradient: linear-gradient(to right, #2563EB, #1E40AF);
+  --secondary-color: #6B7280;
+  --background-color: #F3F4F6;
+  --white: #FFFFFF;
+  --hover-color: #1E40AF;
+  --card-background: #FFFFFF;
+  --border-color: #E5E7EB;
+  --text-color: #1F2937;
+  --text-secondary: #6B7280;
+  --hover-background: rgba(37, 99, 235, 0.05);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --transition-standard: all 0.3s ease;
+
+  --ai-panel-bg: #ecf0f1;
+  --ai-panel-border: #bdc3c7;
+  --ai-panel-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+  --ai-heading-color: #34495e;
+  --ai-text-color: #7f8c8d;
+  --ai-textarea-border: #bdc3c7;
+  --ai-textarea-focus-border: #3498db;
+  --ai-textarea-focus-shadow: rgba(52, 152, 219, 0.3);
+  --ai-button-bg: #3498db;
+  --ai-button-hover-bg: #2980b9;
+  --ai-button-disabled-bg: #95a5a6;
+  --ai-loading-color: #3498db;
+  --ai-error-color: #e74c3c;
+  --ai-output-bg: #ffffff;
+  --ai-output-border: #bdc3c7;
+  --ai-output-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+  --ai-output-heading-color: #2c3e50;
+  --ai-output-heading-border: #bdc3c7;
+}
+
+.mentorship-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--background-color);
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.mentorship-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.mentorship-header h1 {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  animation: fadeInDown 1s ease-in-out;
+}
+
+.mentorship-header p {
+  font-size: 1.2rem;
+  color: var(--secondary-color);
+  max-width: 800px;
+  margin: 0 auto;
+  animation: fadeInUp 1.2s ease-in-out;
+  line-height: 1.5;
+}
+
+.mentorship-body {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 3rem;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.mentor-card {
+  background: var(--white);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 250px;
+  animation: fadeInUp 1.5s ease-in-out;
+  border: 1px solid var(--ai-panel-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.mentor-card h2 {
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.mentor-card p {
+  font-size: 1rem;
+  color: var(--secondary-color);
+  flex-grow: 1;
+}
+
+.cta-button {
+  margin-top: 1rem;
+  padding: 10px 20px;
+  background-color: var(--primary-color);
+  color: var(--white);
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, background-color 0.3s ease;
+}
+
+.cta-button:hover {
+  background-color: var(--hover-color);
+  transform: scale(1.05);
+}
+
+.mentorship-footer {
+  text-align: center;
+  margin-top: 3rem;
+  color: var(--secondary-color);
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.ai-suggestion-panel {
+  background-color: var(--ai-panel-bg);
+  padding: 25px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  border: 1px solid var(--ai-panel-border);
+  box-shadow: var(--ai-panel-shadow);
+}
+
+.ai-suggestion-panel h2 {
+  color: var(--ai-heading-color);
+  font-size: 1.8em;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.ai-suggestion-panel > p {
+  color: var(--ai-text-color);
+  font-size: 1em;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.ai-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.career-input-textarea {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid var(--ai-textarea-border);
+  border-radius: 5px;
+  font-size: 1em;
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+  color: var(--ai-heading-color);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.career-input-textarea:focus {
+  outline: none;
+  border-color: var(--ai-textarea-focus-border);
+  box-shadow: 0 0 8px var(--ai-textarea-focus-shadow);
+}
+
+.career-input-textarea::placeholder {
+  color: var(--ai-text-color);
+  opacity: 0.8;
+}
+
+.get-suggestion-button {
+  background-color: var(--ai-button-bg);
+  color: var(--white);
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease, opacity 0.3s ease;
+  align-self: flex-end;
+  font-weight: bold;
+}
+
+.get-suggestion-button:hover:not(:disabled) {
+  background-color: var(--ai-button-hover-bg);
+}
+
+.get-suggestion-button:disabled {
+  background-color: var(--ai-button-disabled-bg);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.suggestion-loading {
+  text-align: center;
+  color: var(--ai-loading-color);
+  font-size: 1em;
+  margin-top: 15px;
+}
+
+.suggestion-error {
+  text-align: center;
+  color: var(--ai-error-color);
+  font-size: 1em;
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+.ai-suggestion-output {
+  background-color: var(--ai-output-bg);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--ai-output-border);
+  margin-top: 20px;
+  box-shadow: var(--ai-output-shadow);
+  line-height: 1.6;
+  color: var(--ai-heading-color);
+  white-space: pre-wrap;
+}
+
+.ai-suggestion-output h3 {
+  color: var(--ai-output-heading-color);
+  font-size: 1.4em;
+  margin-bottom: 15px;
+  border-bottom: 1px dashed var(--ai-output-heading-border);
+  padding-bottom: 10px;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
   }
-  
-  .mentorship-container {
-    display: flex;
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .mentorship-body {
     flex-direction: column;
-    min-height: 100vh;
-    background-color: var(--background-color);
-    padding: 2rem;
-    font-family: Arial, sans-serif;
+    align-items: center;
   }
-  
-  .mentorship-header {
-    text-align: center;
+
+  .mentor-card {
+    width: 80%;
     margin-bottom: 2rem;
   }
-  
+}
+
+@media (max-width: 480px) {
+  .mentorship-container {
+    padding: 15px;
+  }
+
   .mentorship-header h1 {
-    font-size: 2.5rem;
-    color: var(--primary-color);
-    animation: fadeInDown 1s ease-in-out;
+    font-size: 1.8em;
   }
-  
+
   .mentorship-header p {
-    font-size: 1.2rem;
-    color: var(--secondary-color);
-    max-width: 800px;
-    margin: 0 auto;
-    animation: fadeInUp 1.2s ease-in-out;
+    font-size: 1em;
   }
-  
-  .mentorship-body {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 3rem;
-    gap: 2rem;
+
+  .ai-suggestion-panel h2 {
+    font-size: 1.5em;
   }
-  
-  .mentor-card {
-    background: var(--white);
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    width: 250px;
-    animation: fadeInUp 1.5s ease-in-out;
+
+  .get-suggestion-button {
+    width: 100%;
+    align-self: stretch;
   }
-  
-  .mentor-card h2 {
-    color: var(--primary-color);
-    margin-bottom: 1rem;
+
+  .ai-suggestion-output h3 {
+    font-size: 1.2em;
   }
-  
-  .mentor-card p {
-    font-size: 1rem;
-    color: var(--secondary-color);
-  }
-  
-  .cta-button {
-    margin-top: 1rem;
-    padding: 10px 20px;
-    background-color: var(--primary-color);
-    color: var(--white);
-    font-weight: bold;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: transform 0.2s ease-in-out;
-  }
-  
-  .cta-button:hover {
-    background-color: var(--hover-color);
-    transform: scale(1.05);
-  }
-  
-  .mentorship-footer {
-    text-align: center;
-    margin-top: 3rem;
-    color: var(--secondary-color);
-  }
-  
-  @keyframes fadeInDown {
-    from {
-      opacity: 0;
-      transform: translateY(-30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .mentorship-body {
-      flex-direction: column;
-      align-items: center;
-    }
-  
-    .mentor-card {
-      width: 80%;
-      margin-bottom: 2rem;
-    }
-  }
-  
+}
