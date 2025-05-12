@@ -2,12 +2,9 @@ import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./AIMentorship.css";
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY; // Read API key from .env
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${GEMINI_API_KEY}`; // <-- Model adı güncellendi
+const API_BASE_URL = 'http://10.196.191.59:8000/api';
 
-
-
-const AIMentorship = () => {
+const AIMentorship = ({ userToken }) => {
   const { mentorId } = useParams();
   const navigate = useNavigate();
 
@@ -15,6 +12,7 @@ const AIMentorship = () => {
   const [aiSuggestion, setAiSuggestion] = useState('');
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
   const [suggestionError, setSuggestionError] = useState(null);
+  const [isSharingPost, setIsSharingPost] = useState(false);
 
   const handleBookAppointment = () => {
     console.log('Randevu Alındı!');
@@ -27,9 +25,10 @@ const AIMentorship = () => {
       return;
     }
 
-    if (!GEMINI_API_KEY) {
-      setSuggestionError("Gemini API anahtarı yüklenemedi. .env dosyanızı kontrol edin.");
-      console.error("Gemini API anahtarı .env dosyasından yüklenemedi.");
+    if (!userToken) {
+      setSuggestionError("Kimlik doğrulama token'ı bulunamadı. Lütfen giriş yapın.");
+      console.error("Kimlik doğrulama token'ı bulunamadı.");
+      navigate('/login');
       return;
     }
 
@@ -38,43 +37,86 @@ const AIMentorship = () => {
     setAiSuggestion('');
 
     try {
-      const response = await fetch(GEMINI_API_URL, {
+      const response = await fetch(`${API_BASE_URL}/ai-suggestion/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`,
+        },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: `Kariyer hedeflerim/durumum hakkında bilgi: "${userCareerInput}". Bana bu konuda detaylı bir kariyer yol haritası veya öneri sunar mısın? Türkçe yanıt ver. Yanıtını Markdown formatında düzenle.` }
-              ]
-            }
-          ]
+          user_input: userCareerInput,
         }),
       });
 
       if (!response.ok) {
         const errorBody = await response.json();
-        const errorMessage = errorBody.error?.message || JSON.stringify(errorBody) || `API isteği başarısız oldu: ${response.status}`;
-        console.error("Gemini API HTTP Hatası:", response.status, errorBody);
+        const errorMessage = errorBody.detail || JSON.stringify(errorBody) || `API isteği başarısız oldu: ${response.status}`;
+        console.error("Backend AI Öneri Hatası:", response.status, errorBody);
         throw new Error(errorMessage);
       }
 
       const responseData = await response.json();
-      console.log("Gemini API Yanıtı:", responseData);
-
-      const suggestionText = responseData?.candidates?.[0]?.content?.parts?.[0]?.text;
+      const suggestionText = responseData?.suggestion_text;
 
       if (suggestionText) {
         setAiSuggestion(suggestionText);
       } else {
         setSuggestionError("AI'dan öneri alınamadı veya boş yanıt döndü. Lütfen tekrar deneyin.");
-        console.error("Gemini API yanıt formatı beklenenden farklı veya boş:", responseData);
+        console.error("Backend AI Öneri Yanıtı beklenenden farklı veya boş:", responseData);
       }
+
     } catch (err) {
       console.error("AI Öneri Çekerken Hata:", err);
       setSuggestionError(`Öneri alınırken bir hata oluştu: ${err.message}`);
     } finally {
       setLoadingSuggestion(false);
+    }
+  };
+
+  const handleShareAsPost = async () => {
+    if (!aiSuggestion.trim() || isSharingPost) return;
+
+    if (!userToken) {
+      alert("Bu öneriyi paylaşmak için giriş yapmalısınız.");
+      return;
+    }
+
+    setIsSharingPost(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/posts/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({
+          content: `AI Kariyer Yol Haritası:\n\n${aiSuggestion}`,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        let errorMessage = `Gönderi paylaşılırken hata oluştu (HTTP ${response.status})`;
+        try {
+          const errorJson = JSON.parse(errorBody);
+          errorMessage = errorJson.detail || JSON.stringify(errorJson);
+        } catch {
+          errorMessage = errorBody || errorMessage;
+        }
+        console.error("Gönderi paylaşma backend hatası:", response.status, errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      const sharedPost = await response.json();
+      console.log("Gönderi başarıyla paylaşıldı:", sharedPost);
+      alert("Yol haritası başarıyla gönderi olarak paylaşıldı!");
+      navigate('/home');
+
+    } catch (err) {
+      console.error("Gönderi paylaşma hatası:", err);
+      alert(`Gönderi paylaşılırken bir hata oluştu: ${err.message}`);
+    } finally {
+      setIsSharingPost(false);
     }
   };
 
@@ -92,16 +134,16 @@ const AIMentorship = () => {
         <div className="ai-input-area">
           <textarea
             className="career-input-textarea"
-            placeholder="Örn: Frontend geliştirici olmak istiyorum, mevcut becerilerim HTML, CSS, JS. Ne öğrenmeliyim?"
+            placeholder="Örn: Frontend geliştirici olmak istiyorum, mevcut becerilerim HTML, CSS, JS. Ne öğrenmeliyim? Veya: Veri bilimi alanında kariyer yapmak için hangi sertifikalar faydalı olur?"
             value={userCareerInput}
             onChange={(e) => setUserCareerInput(e.target.value)}
             rows="6"
-            disabled={loadingSuggestion}
+            disabled={loadingSuggestion || isSharingPost}
           ></textarea>
           <button
             className="get-suggestion-button"
             onClick={handleGetSuggestion}
-            disabled={loadingSuggestion || !userCareerInput.trim()}
+            disabled={loadingSuggestion || !userCareerInput.trim() || isSharingPost}
           >
             {loadingSuggestion ? 'Öneri Alınıyor...' : 'Öneri Al'}
           </button>
@@ -109,10 +151,27 @@ const AIMentorship = () => {
 
         {loadingSuggestion && <div className="suggestion-loading">Öneri hazırlanıyor...</div>}
         {suggestionError && <div className="suggestion-error">Hata: {suggestionError}</div>}
+
         {aiSuggestion && (
           <div className="ai-suggestion-output">
             <h3>AI'dan Gelen Öneri:</h3>
             <div dangerouslySetInnerHTML={{ __html: aiSuggestion.replace(/\n/g, '<br>') }}></div>
+            <button
+              className="share-as-post-button"
+              onClick={handleShareAsPost}
+              disabled={isSharingPost || loadingSuggestion || !userToken}
+            >
+              {isSharingPost ? 'Paylaşılıyor...' : 'Gönderi Olarak Paylaş'}
+            </button>
+          </div>
+        )}
+
+        {aiSuggestion && (
+          <div className="visual-roadmap-section">
+            <h3>Kariyer Yol Haritası (Görsel):</h3>
+            <div className="visual-roadmap-placeholder">
+              <p>Görsel yol haritası burada gösterilecektir.</p>
+            </div>
           </div>
         )}
       </div>

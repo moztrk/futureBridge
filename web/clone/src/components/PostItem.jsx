@@ -3,10 +3,10 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "./PostItem.css"; // PostItem'a özel stil dosyası
 
-// Backend API URL - Home.jsx'ten alındı
-const API_BASE_URL = 'http://10.196.191.59:8000/api';
+// Backend API URL - Updated
+const API_BASE_URL = 'http://10.196.191.59:8000/api'; // <-- Updated backend address
 
-const PostItem = ({ post, currentUserProfile }) => {
+const PostItem = ({ post, currentUserProfile, userToken }) => {
   // State'ler
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [likesCount, setLikesCount] = useState(post.likes_count || 0);
@@ -19,6 +19,15 @@ const PostItem = ({ post, currentUserProfile }) => {
 
   // Beğenme fonksiyonu
   const handleLike = async () => {
+    console.log("Beğenme isteği için token:", userToken);
+
+    // userToken kontrolü
+    if (!userToken) {
+      console.error("Kimlik doğrulama token'ı bulunamadı. Lütfen giriş yapın.");
+      alert("Bu işlemi yapmak için giriş yapmalısınız.");
+      return;
+    }
+
     try {
       // Lokal optimistik güncelleme
       const newIsLiked = !isLiked;
@@ -30,7 +39,7 @@ const PostItem = ({ post, currentUserProfile }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('sb-auth-token')}`, // Token'ı localStorage'dan alma
+          'Authorization': `Bearer ${userToken}`,
         },
       });
 
@@ -46,17 +55,24 @@ const PostItem = ({ post, currentUserProfile }) => {
       setLikesCount(data.likes_count || likesCount);
     } catch (err) {
       console.error("Like error:", err);
+      alert(`Beğenme işlemi başarısız oldu: ${err.message}`);
     }
   };
 
   // Yorumları yükleme
   const loadComments = async () => {
+    if (!userToken) {
+      console.error("Kimlik doğrulama token'ı bulunamadı. Yorumlar yüklenemedi.");
+      alert("Yorumları görmek için giriş yapmalısınız.");
+      return;
+    }
+
     if (!showComments) {
       setIsLoadingComments(true);
       try {
         const response = await fetch(`${API_BASE_URL}/posts/${post.id}/comments/`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('sb-auth-token')}`,
+            'Authorization': `Bearer ${userToken}`,
           }
         });
 
@@ -69,12 +85,11 @@ const PostItem = ({ post, currentUserProfile }) => {
         setShowComments(true);
       } catch (err) {
         console.error("Load comments error:", err);
-        alert("Failed to load comments. Please try again.");
+        alert(`Yorumlar yüklenemedi: ${err.message}`);
       } finally {
         setIsLoadingComments(false);
       }
     } else {
-      // Yorumlar zaten gösteriliyorsa, kapat
       setShowComments(false);
     }
   };
@@ -84,13 +99,20 @@ const PostItem = ({ post, currentUserProfile }) => {
     e.preventDefault();
     if (!commentText.trim() || isSubmittingComment) return;
 
+    // userToken kontrolü
+    if (!userToken) {
+      console.error("Kimlik doğrulama token'ı bulunamadı. Yorum gönderilemedi.");
+      alert("Yorum yapmak için giriş yapmalısınız.");
+      return;
+    }
+
     setIsSubmittingComment(true);
     try {
       const response = await fetch(`${API_BASE_URL}/posts/${post.id}/comments/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('sb-auth-token')}`,
+          'Authorization': `Bearer ${userToken}`,
         },
         body: JSON.stringify({ content: commentText }),
       });
@@ -100,20 +122,20 @@ const PostItem = ({ post, currentUserProfile }) => {
       }
 
       const newComment = await response.json();
-      
-      // Şu anki kullanıcıya ait verilerle yorumu zenginleştirme
+
+      // Yorum yazar bilgisi backend'den geliyorsa kullan, yoksa currentUserProfile'dan al
       const commentWithUserData = {
         ...newComment,
-        author_nickname: currentUserProfile?.nickname || 'You',
-        author_avatar_url: currentUserProfile?.avatar_url,
+        author_nickname: newComment.author_nickname || currentUserProfile?.nickname || 'You',
+        author_avatar_url: newComment.author_avatar_url || currentUserProfile?.avatar_url,
       };
-      
+
       setComments(prevComments => [commentWithUserData, ...prevComments]);
       setCommentText("");
       setCommentsCount(prevCount => prevCount + 1);
     } catch (err) {
       console.error("Comment error:", err);
-      alert("Failed to post comment. Please try again.");
+      alert(`Yorum gönderilemedi: ${err.message}`);
     } finally {
       setIsSubmittingComment(false);
     }
@@ -150,21 +172,25 @@ const PostItem = ({ post, currentUserProfile }) => {
     <div className="post-item">
       {/* Post Header */}
       <div className="post-header">
+        {/* Yazarın profil linki */}
         <Link to={`/profile/${post.author_id}`} className="post-author">
+          {/* Yazarın avatarı */}
           <img 
             src={authorAvatar} 
             alt={post.author_nickname || "User"} 
             className="post-avatar" 
           />
           <div className="post-author-info">
+            {/* Yazarın nickname'i veya adı */}
             <span className="post-author-name">
-              {post.author_nickname || "Anonymous User"}
+              {post.author_nickname || post.author_name || "Anonymous User"} {/* <-- Nickname veya adı göster */}
             </span>
+            {/* Gönderi zamanı */}
             <span className="post-time">{formatDate(post.created_at)}</span>
           </div>
         </Link>
         
-        {/* Post Menu (ellipsis) */}
+        {/* Post Menü (ellipsis) */}
         <button className="post-menu-button">
           <i className="fas fa-ellipsis-h"></i>
         </button>
@@ -262,7 +288,7 @@ const PostItem = ({ post, currentUserProfile }) => {
                 <div className="comment-content">
                   <div className="comment-bubble">
                     <Link to={`/profile/${comment.author_id}`} className="comment-author">
-                      {comment.author_nickname || "Anonymous User"}
+                      {comment.author_nickname || comment.author_name || "Anonymous User"} {/* <-- Yorum yazar nickname/adı göster */}
                     </Link>
                     <p className="comment-text">{comment.content}</p>
                   </div>

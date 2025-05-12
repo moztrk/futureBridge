@@ -89,7 +89,7 @@ const Login = () => {
 
       {/* Sağ Taraf - Tanıtım Bölümü */}
       <div className="intro-section">
-        <h1>Future</h1>
+        <h1>Menture</h1>
         <p>
           Kişiselleştirilmiş kariyer önerileri ve yapay zeka destekli mentorluk ile geleceğinizi şekillendirin.
         </p>

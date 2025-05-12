@@ -1,133 +1,206 @@
-# backend/profiles/serializers.py
-
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError  # Ensure ValidationError is imported
+from rest_framework.exceptions import ValidationError
+from django.apps import apps
+
 from .models import UserProfile, Post, Interaction, Message, Friendship, Recommendation, UserJourney
-from django.apps import apps # Modelleri dinamik yüklemek için (bazı view'lerde kullanıldığı için burada dursun)
 
 
+# UserProfile Serializer
 class UserProfileSerializer(serializers.ModelSerializer):
-    # id alanı Supabase UUID'den gelir ve frontend'de item.id olarak kullanılabilir.
-    # Django'daki primary key'in supabase_id olduğunu belirtmek için meta içinde mapping yapabiliriz
-    # veya sadece supabase_id alanını kullanırız. Frontend'de item.supabase_id olarak kullanıyoruz.
-    # Bu serializer sadece UserProfile modelini serialize eder, Django'daki id'yi kullanmaz.
-    # Ancak frontend'de item.id yerine item.supabase_id kullanmaya başladık, bu yüzden bu serializer direkt kullanilabilir.
-
     class Meta:
         model = UserProfile
-        fields = '__all__' # Tüm alanları dahil et
-        # Supabase ID'nin API ile güncellenmemesini sağlar, sadece backend set edebilir veya okunabilir
+        fields = '__all__'
         read_only_fields = ('supabase_id',)
 
 
+# Post Serializer
 class PostSerializer(serializers.ModelSerializer):
-    # Yazarın (author) nickname'ini ve avatar_url'sini getirmek için source kullanıyoruz
-    author_nickname = serializers.CharField(source='author.nickname', read_only=True)  # Yazarın nickname'i
-    author_avatar_url = serializers.URLField(source='author.avatar_url', read_only=True)  # Yazarın avatar URL'si
+    author_nickname = serializers.CharField(source='author.nickname', read_only=True)
+    author_avatar_url = serializers.URLField(source='author.avatar_url', read_only=True)
 
     class Meta:
         model = Post
         fields = [
             'id',
-            'author',  # Yazarın ID'si (ForeignKey alanı)
-            'author_nickname',  # Yazarın nickname'i
-            'author_avatar_url',  # Yazarın avatar URL'si
-            'content',  # Gönderi içeriği
-            'created_at',  # Oluşturulma tarihi
+            'author',
+            'author_nickname',
+            'author_avatar_url',
+            'content',
+            'created_at',
         ]
         read_only_fields = [
             'id',
-            'author',  # Author perform_create ile atanır
+            'author',
             'author_nickname',
             'author_avatar_url',
             'created_at',
         ]
         extra_kwargs = {
-            'content': {'required': True},  # Gönderi içeriği zorunlu
+            'content': {'required': True},
         }
 
 
+# Interaction Serializer
 class InteractionSerializer(serializers.ModelSerializer):
-    # Etkileşimi yapan kişinin nickname'i
     user_nickname = serializers.CharField(source='user.nickname', read_only=True)
-    # Etkileşimi yapan kişinin ID'si (UserProfile'ın supabase_id'si)
-    # user_id = serializers.UUIDField(source='user.supabase_id', read_only=True) # İsteğe bağlı
-
+    user_avatar_url = serializers.URLField(source='user.avatar_url', read_only=True)
 
     class Meta:
         model = Interaction
-        fields = '__all__'
-        # Kullanıcı (ForeignKey objesi) ve tarih backend'de belirlenir, inputta olmamalı
-        read_only_fields = ('user', 'created_at')
+        fields = [
+            'id',
+            'user',
+            'user_nickname',
+            'user_avatar_url',
+            'post',
+            'type',
+            'comment_text',
+            'created_at',
+        ]
+        read_only_fields = ('id', 'user', 'user_nickname', 'user_avatar_url', 'post', 'created_at')
 
 
+# Message Serializer
 class MessageSerializer(serializers.ModelSerializer):
     sender_nickname = serializers.CharField(source='sender.nickname', read_only=True)
+    sender_avatar_url = serializers.URLField(source='sender.avatar_url', read_only=True)
     receiver_nickname = serializers.CharField(source='receiver.nickname', read_only=True)
+    receiver_avatar_url = serializers.URLField(source='receiver.avatar_url', read_only=True)
+    receiver_id = serializers.UUIDField(write_only=True)
 
     class Meta:
         model = Message
-        fields = '__all__'
-        # Gönderen, alıcı (ForeignKey objeleri) ve tarih backend'de belirlenir
-        read_only_fields = ('sender', 'receiver', 'created_at')
+        fields = [
+            'id',
+            'sender',
+            'sender_nickname',
+            'sender_avatar_url',
+            'receiver',
+            'receiver_nickname',
+            'receiver_avatar_url',
+            'receiver_id',
+            'content',
+            'created_at',
+        ]
+        read_only_fields = ('id', 'sender', 'receiver', 'sender_nickname', 'sender_avatar_url', 'receiver_nickname', 'receiver_avatar_url', 'created_at')
+        extra_kwargs = {
+            'content': {'required': True},
+        }
+
+    def create(self, validated_data):
+        receiver_id = validated_data.pop('receiver_id')
+        try:
+            receiver_profile = UserProfile.objects.get(supabase_id=receiver_id)
+        except UserProfile.DoesNotExist:
+            raise ValidationError("Receiver user profile not found.")
+
+        message = Message.objects.create(receiver=receiver_profile, **validated_data)
+        return message
 
 
-# FriendshipsSerializer - TEK VE DOĞRU TANIM
+# Friendship Serializer
 class FriendshipSerializer(serializers.ModelSerializer):
-    # Gönderen ve alıcı kullanıcının nickname'lerini ekleyelim (UserProfile'dan)
     sender_nickname = serializers.CharField(source='sender.nickname', read_only=True)
+    sender_avatar_url = serializers.URLField(source='sender.avatar_url', read_only=True)
     receiver_nickname = serializers.CharField(source='receiver.nickname', read_only=True)
-
-    # receiver alanını input için read_only yapıyoruz çünkü View'ın perform_create metodu bu alanı elle set ediyor.
-    # DRF varsayılan olarak ForeignKey alanlarını inputta bekler, bunu engellemek için read_only=True yapıyoruz.
-    # Ancak alan yine de 'fields' listesinde olduğu için outputta gösterilecektir (UserProfile objesinin primary key'i olarak).
-    receiver = serializers.PrimaryKeyRelatedField(read_only=True)
-
+    receiver_avatar_url = serializers.URLField(source='receiver.avatar_url', read_only=True)
+    receiver_id = serializers.UUIDField(write_only=True, required=False)
 
     class Meta:
         model = Friendship
-        # Serializerın outputta göstermesi gereken tüm alanlar
-        fields = ['id', 'sender', 'receiver', 'sender_nickname', 'receiver_nickname', 'status', 'created_at', 'updated_at']
-        # Backend tarafından otomatik set edilen veya inputta beklenmeyen alanlar
-        # sender, created_at, updated_at backend tarafından set edilir.
-        read_only_fields = ['id', 'sender', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'sender',
+            'sender_nickname',
+            'sender_avatar_url',
+            'receiver',
+            'receiver_nickname',
+            'receiver_avatar_url',
+            'receiver_id',
+            'status',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ('id', 'sender', 'receiver', 'sender_nickname', 'sender_avatar_url', 'receiver_nickname', 'receiver_avatar_url', 'created_at', 'updated_at')
+        extra_kwargs = {
+            'status': {'required': False},
+        }
 
-    # View'ın perform_create metodu receiver objesini elle geçtiği için,
-    # serializer'ın default create metodunun receiver'ı input data'dan bulmasına gerek kalmaz.
-    # Bu yüzden burada custom bir create metoduna ihtiyaç duymuyoruz.
+    def create(self, validated_data):
+        receiver_id = validated_data.pop('receiver_id')
+        if not receiver_id:
+            raise ValidationError("Receiver ID is required for creating a friendship.")
+
+        try:
+            receiver_profile = UserProfile.objects.get(supabase_id=receiver_id)
+        except UserProfile.DoesNotExist:
+            raise ValidationError("Receiver user profile not found.")
+
+        friendship = Friendship.objects.create(receiver=receiver_profile, **validated_data)
+        return friendship
+
+    def update(self, instance, validated_data):
+        if 'status' in validated_data:
+            instance.status = validated_data['status']
+            instance.save()
+            return instance
+        else:
+            raise ValidationError("Only 'status' field can be updated for Friendship.")
 
 
+# Recommendation Serializer
 class RecommendationSerializer(serializers.ModelSerializer):
-    # Önerilen gönderinin başlığını ve ID'sini ekleyelim
     recommended_post_title = serializers.CharField(source='recommended_post.title', read_only=True)
-    # recommended_post_id = serializers.IntegerField(source='recommended_post.id', read_only=True)  # Ensure correct field type
+    recommended_post_content = serializers.CharField(source='recommended_post.content', read_only=True)
+    recommended_post_id = serializers.IntegerField(source='recommended_post.id', read_only=True)
+    user_id = serializers.UUIDField(write_only=True)
+    recommended_post_input_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Recommendation
-        fields = '__all__'
-        # Kullanıcı (ForeignKey objesi), önerilen gönderi (ForeignKey objesi) ve tarih backend'de belirlenir
-        read_only_fields = ('user', 'recommended_post', 'created_at')  # Ensure fields exist in the model
+        fields = [
+            'id',
+            'user',
+            'user_id',
+            'recommended_post',
+            'recommended_post_input_id',
+            'recommended_post_title',
+            'recommended_post_content',
+            'created_at',
+        ]
+        read_only_fields = ('id', 'user', 'recommended_post', 'recommended_post_title', 'recommended_post_content', 'created_at')
+
+    def create(self, validated_data):
+        user_id = validated_data.pop('user_id')
+        recommended_post_id = validated_data.pop('recommended_post_input_id')
+
+        try:
+            user_profile = UserProfile.objects.get(supabase_id=user_id)
+            recommended_post = Post.objects.get(id=recommended_post_id)
+        except UserProfile.DoesNotExist:
+            raise ValidationError("User profile not found.")
+        except Post.DoesNotExist:
+            raise ValidationError("Recommended post not found.")
+
+        recommendation = Recommendation.objects.create(user=user_profile, recommended_post=recommended_post, **validated_data)
+        return recommendation
 
 
+# UserJourney Serializer
 class UserJourneySerializer(serializers.ModelSerializer):
-    # Kullanıcının nickname'ini ekleyelim
     user_nickname = serializers.CharField(source='user.nickname', read_only=True)
-    # user_id = serializers.UUIDField(source='user.supabase_id', read_only=True)  # Ensure correct field type
+    user_avatar_url = serializers.URLField(source='user.avatar_url', read_only=True)
 
     class Meta:
         model = UserJourney
         fields = '__all__'
-        # Kullanıcı (ForeignKey objesi) ve zaman damgası backend'de belirlenir
-        read_only_fields = ('user', 'timestamp')  # Ensure fields exist in the model
+        read_only_fields = ('id', 'user', 'user_nickname', 'user_avatar_url', 'timestamp')
 
 
-# Arkadaş Listesi için Kullanıcı Profili Serializer'ı (Temel Bilgiler)
+# Friend Serializer
 class FriendSerializer(serializers.ModelSerializer):
-    # Supabase UUID'sini 'id' olarak döndürelim (frontend'de item.id kullanmak için)
     id = serializers.UUIDField(source='supabase_id', read_only=True)
 
     class Meta:
         model = UserProfile
-        # Arkadaş listesinde göstermek istediğiniz alanları seçin
         fields = ['id', 'nickname', 'avatar_url']
-        # Eğer başka alanlar da göstermek isterseniz buraya ekleyin

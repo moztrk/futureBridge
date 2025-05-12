@@ -36,12 +36,15 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'varsayilan-cok-guclu-olmayan-anahtar') # O
 DEBUG = True # Set to False in production!
 
 # Allowed hosts for your Django application
-ALLOWED_HOSTS = ['192.168.182.3', '127.0.0.1', 'localhost','10.192.20.220','192.168.182.27'] # IP adresinizi ekledik
+ALLOWED_HOSTS = ['192.168.182.3', '127.0.0.1', 'localhost','10.192.20.220','192.168.182.27','192.168.200.192','10.196.191.59','192.168.182.238','192.168.200.192'
+                 ,'10.196.191.59'
+                 ] # IP adresinizi ekledik
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin', # Django Admin panel
     'django.contrib.auth', # Django Authentication system
     'django.contrib.contenttypes', # Content type system
@@ -61,6 +64,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware', # Django authentication middleware
@@ -153,7 +157,11 @@ REST_FRAMEWORK = {
 # Supabase JWT Settings (Used by your custom authentication class)
 SUPABASE_JWT_SECRET = os.getenv('JWT_SECRET_KEY') # Read JWT Secret from environment variable
 SUPABASE_AUDIENCE = os.getenv('SUPABASE_AUDIENCE', 'authenticated') # Read Audience from env, default to 'authenticated'
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+# Eğer anahtar yoksa hata fırlatabilirsiniz (isteğe bağlı)
+if not GEMINI_API_KEY:
+    raise EnvironmentError("GEMINI_API_KEY ortam değişkeni ayarlanmamış.")
 
 # === MODEL DEFINITIONS SHOULD NOT BE HERE ===
 # === THEY MUST BE IN YOUR APPS' models.py FILES ===
@@ -161,3 +169,10 @@ SUPABASE_AUDIENCE = os.getenv('SUPABASE_AUDIENCE', 'authenticated') # Read Audie
 # import uuid # DELETE THIS LINE if it's at the end
 # class User(models.Model): # DELETE THIS ENTIRE BLOCK and all subsequent model blocks
 #    ...
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173", # <-- Web frontend'inizin adresi
+    "http://127.0.0.1:5173", # <-- Bazen 127.0.0.1 de gerekebilir
+    # Üretim ortamında web sitenizin gerçek URL'sini buraya ekleyeceksiniz
+    # "https://your-production-website.com",
+]
