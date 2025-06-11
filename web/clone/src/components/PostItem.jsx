@@ -4,9 +4,9 @@ import { Link } from "react-router-dom";
 import "./PostItem.css"; // PostItem'a özel stil dosyası
 
 // Backend API URL - Updated
-const API_BASE_URL = 'http://10.196.191.59:8000/api'; // <-- Updated backend address
+const API_BASE_URL = 'http://localhost:8000/api'; // <-- Updated backend address
 
-const PostItem = ({ post, currentUserProfile, userToken }) => {
+const PostItem = ({ post, currentUserProfile, userToken, friends = [], userId }) => {
   // State'ler
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [likesCount, setLikesCount] = useState(post.likes_count || 0);
@@ -16,6 +16,10 @@ const PostItem = ({ post, currentUserProfile, userToken }) => {
   const [comments, setComments] = useState(post.comments || []);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [selectedFriendId, setSelectedFriendId] = useState("");
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareError, setShareError] = useState("");
 
   // Beğenme fonksiyonu
   const handleLike = async () => {
@@ -29,11 +33,7 @@ const PostItem = ({ post, currentUserProfile, userToken }) => {
     }
 
     try {
-      // Lokal optimistik güncelleme
-      const newIsLiked = !isLiked;
-      setIsLiked(newIsLiked);
-      setLikesCount(prevCount => newIsLiked ? prevCount + 1 : prevCount - 1);
-
+      // Optimistik local güncelleme kaldırıldı
       // Backend'e istek gönder
       const response = await fetch(`${API_BASE_URL}/posts/${post.id}/like/`, {
         method: 'POST',
@@ -44,15 +44,14 @@ const PostItem = ({ post, currentUserProfile, userToken }) => {
       });
 
       if (!response.ok) {
-        // İstek başarısız olursa state'i geri al
-        setIsLiked(!newIsLiked);
-        setLikesCount(prevCount => newIsLiked ? prevCount - 1 : prevCount + 1);
         throw new Error(`Like operation failed: ${response.status}`);
       }
 
       // Backend'den dönen gerçek sayıyı kullan
       const data = await response.json();
-      setLikesCount(data.likes_count || likesCount);
+      console.log('Like response:', data);
+      setIsLiked(data.liked);
+      setLikesCount(typeof data.likes_count === 'number' ? data.likes_count : likesCount);
     } catch (err) {
       console.error("Like error:", err);
       alert(`Beğenme işlemi başarısız oldu: ${err.message}`);
@@ -81,8 +80,10 @@ const PostItem = ({ post, currentUserProfile, userToken }) => {
         }
 
         const loadedComments = await response.json();
+        console.log('Loaded comments:', loadedComments);
         setComments(loadedComments);
         setShowComments(true);
+        setCommentsCount(Array.isArray(loadedComments) ? loadedComments.length : 0);
       } catch (err) {
         console.error("Load comments error:", err);
         alert(`Yorumlar yüklenemedi: ${err.message}`);
@@ -114,11 +115,19 @@ const PostItem = ({ post, currentUserProfile, userToken }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${userToken}`,
         },
-        body: JSON.stringify({ content: commentText }),
+        body: JSON.stringify({ comment_text: commentText, type: "comment" }),
       });
 
+      let errorBody = null;
       if (!response.ok) {
-        throw new Error(`Comment failed: ${response.status}`);
+        try {
+          errorBody = await response.json();
+        } catch {
+          errorBody = await response.text();
+        }
+        console.error("Comment POST error body:", errorBody);
+        alert(`Yorum gönderilemedi! Sunucu cevabı: ${JSON.stringify(errorBody)}`);
+        throw new Error(`Comment failed: ${response.status} - ${JSON.stringify(errorBody)}`);
       }
 
       const newComment = await response.json();
@@ -128,6 +137,7 @@ const PostItem = ({ post, currentUserProfile, userToken }) => {
         ...newComment,
         author_nickname: newComment.author_nickname || currentUserProfile?.nickname || 'You',
         author_avatar_url: newComment.author_avatar_url || currentUserProfile?.avatar_url,
+        author_id: newComment.author_id || currentUserProfile?.id,
       };
 
       setComments(prevComments => [commentWithUserData, ...prevComments]);
@@ -168,6 +178,30 @@ const PostItem = ({ post, currentUserProfile, userToken }) => {
   const defaultAvatarUrl = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='20' fill='%23ddd'/%3E%3Ccircle cx='50' cy='100' r='40' fill='%23ddd'/%3E%3C/svg%3E`;
   const authorAvatar = post.author_avatar_url || defaultAvatarUrl;
 
+  const handleShareAsMessage = async () => {
+    if (!selectedFriendId) return;
+    setIsSharing(true);
+    setShareError("");
+    try {
+      const response = await fetch(`http://localhost:8000/api/messages/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`
+        },
+        body: JSON.stringify({ receiver_id: selectedFriendId, message_text: `Bir gönderi paylaşıldı: \n\n${post.content}` })
+      });
+      if (!response.ok) throw new Error('Mesaj olarak paylaşma başarısız');
+      setShowShareModal(false);
+      setSelectedFriendId("");
+      alert("Gönderi mesaj olarak paylaşıldı!");
+    } catch (e) {
+      setShareError("Mesaj gönderilemedi");
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   return (
     <div className="post-item">
       {/* Post Header */}
@@ -203,17 +237,14 @@ const PostItem = ({ post, currentUserProfile, userToken }) => {
 
       {/* Post Stats - Likes and Comments Count */}
       <div className="post-stats">
-        {likesCount > 0 && (
-          <div className="stat-item likes-count">
-            <i className="fas fa-thumbs-up stat-icon"></i>
-            <span>{likesCount}</span>
-          </div>
-        )}
-        {commentsCount > 0 && (
-          <div className="stat-item comments-count">
-            <span>{commentsCount} comments</span>
-          </div>
-        )}
+        <div className="stat-item likes-count">
+          <i className="fas fa-thumbs-up stat-icon"></i>
+          <span>{likesCount}</span>
+        </div>
+        <div className="stat-item comments-count">
+          <i className="far fa-comment stat-icon"></i>
+          <span>{commentsCount}</span>
+        </div>
       </div>
 
       {/* Post Actions - Like, Comment, Share */}
@@ -234,9 +265,9 @@ const PostItem = ({ post, currentUserProfile, userToken }) => {
           <span>Comment</span>
         </button>
         
-        <button className="post-action-button">
-          <i className="fas fa-share"></i>
-          <span>Share</span>
+        <button className="post-action-button" onClick={() => setShowShareModal(true)}>
+          <i className="fas fa-paper-plane"></i>
+          <span>Mesaj olarak paylaş</span>
         </button>
       </div>
 
@@ -278,7 +309,7 @@ const PostItem = ({ post, currentUserProfile, userToken }) => {
           <div className="comments-list">
             {comments.map(comment => (
               <div key={comment.id} className="comment-item">
-                <Link to={`/profile/${comment.author_id}`} className="comment-avatar-link">
+                <Link to={`/profile/${comment.author_id || comment.user}`} className="comment-avatar-link">
                   <img 
                     src={comment.author_avatar_url || defaultAvatarUrl} 
                     alt={comment.author_nickname || "User"} 
@@ -287,14 +318,12 @@ const PostItem = ({ post, currentUserProfile, userToken }) => {
                 </Link>
                 <div className="comment-content">
                   <div className="comment-bubble">
-                    <Link to={`/profile/${comment.author_id}`} className="comment-author">
-                      {comment.author_nickname || comment.author_name || "Anonymous User"} {/* <-- Yorum yazar nickname/adı göster */}
+                    <Link to={`/profile/${comment.author_id || comment.user}`} className="comment-author">
+                      {comment.author_nickname || comment.user_nickname || comment.author_name || "Anonymous User"} {/* <-- Yorum yazar nickname/adı göster */}
                     </Link>
-                    <p className="comment-text">{comment.content}</p>
+                    <p className="comment-text">{comment.comment_text || comment.content}</p>
                   </div>
                   <div className="comment-actions">
-                    <button className="comment-action-button">Like</button>
-                    <button className="comment-action-button">Reply</button>
                     <span className="comment-time">{formatDate(comment.created_at)}</span>
                   </div>
                 </div>
@@ -304,6 +333,26 @@ const PostItem = ({ post, currentUserProfile, userToken }) => {
             {comments.length === 0 && !isLoadingComments && (
               <div className="no-comments">No comments yet. Be the first to comment!</div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Mesaj olarak paylaş modalı */}
+      {showShareModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Arkadaşına Mesaj Olarak Paylaş</h3>
+            <select value={selectedFriendId} onChange={e => setSelectedFriendId(e.target.value)}>
+              <option value="">Arkadaş seç</option>
+              {friends.map(f => (
+                <option key={f.id} value={f.id}>{f.nickname || (f.email ? f.email.slice(0,4) : 'Kullanıcı')}</option>
+              ))}
+            </select>
+            <button onClick={handleShareAsMessage} disabled={!selectedFriendId || isSharing} style={{marginTop: 12}}>
+              {isSharing ? 'Paylaşılıyor...' : 'Paylaş'}
+            </button>
+            {shareError && <div style={{color: 'red', marginTop: 8}}>{shareError}</div>}
+            <button onClick={() => setShowShareModal(false)} style={{marginTop: 8}}>Kapat</button>
           </div>
         </div>
       )}

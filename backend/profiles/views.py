@@ -21,8 +21,9 @@ from rest_framework.mixins import (
     DestroyModelMixin,
 )
 from rest_framework.generics import ListAPIView
+from rest_framework.decorators import action
 
-from .models import UserProfile, Friendship, Post, Interaction, Message, Recommendation, UserJourney
+from .models import UserProfile, Friendship, Post, Interaction, Message, Recommendation, UserJourney, Roadmap, Notification
 from .serializers import (
     UserProfileSerializer,
     FriendshipSerializer,
@@ -31,7 +32,9 @@ from .serializers import (
     MessageSerializer,
     RecommendationSerializer,
     UserJourneySerializer,
-    FriendSerializer
+    FriendSerializer,
+    RoadmapSerializer,
+    NotificationSerializer
 )
 
 def get_profiles_model(model_name):
@@ -61,10 +64,7 @@ class AIAssistantSuggestionView(APIView):
                     {
                         "parts": [
                             {
-                                "text": f"""Kariyer hedeflerim/durumum hakkında bilgi: "{user_input}".
-Bana bu konuda kısa ve öz (minimum 4-5, maksimum 10 satır) bir giriş paragrafı ile başlayan, ardından adım adım bir kariyer yol haritası sunar mısın?
-Yol haritasındaki her adımı bir emoji (örneğin ✨, ✅, ➡️) veya basit bir işaret (örneğin -, *) ile belirt ve her adımı kısa tut.
-Türkçe yanıt ver. Yanıtını Markdown formatında (başlıklar, listeler, kalın yazılar kullanarak) düzenle."""
+                                "text": f"""Kariyer hedeflerim/durumum: \"{user_input}\".\nBana bu konuda kısa bir giriş paragrafı ile başlayan, ardından seviyeme ve hedeflerime göre EN FAYDALI olacak şekilde 6 ile 12 arası, gerekirse dallanabilen (alternatifli veya isteğe bağlı adımlar da olabilir) bir kariyer yol haritası sunar mısın?\nHer adım kısa, net ve bir emojiyle başlasın. Alternatif veya isteğe bağlı adımları belirt.\nTürkçe yanıt ver. Yanıtını modern ve okunaklı bir Markdown formatında (başlıklar, listeler, kalın yazılar, alt başlıklar) düzenle."""
                             }
                         ]
                     }
@@ -96,6 +96,7 @@ Türkçe yanıt ver. Yanıtını Markdown formatında (başlıklar, listeler, ka
             print(f"HATA: Beklenmeyen backend hatası: {e}")
             return Response({"detail": f"Sunucu hatası: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@method_decorator(csrf_exempt, name='dispatch') # <-- Eklendi
 class UserSearchView(generics.ListAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
@@ -116,6 +117,7 @@ class UserSearchView(generics.ListAPIView):
 
         return queryset
 
+@method_decorator(csrf_exempt, name='dispatch') # <-- Eklendi
 class AuthenticatedUserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
@@ -150,6 +152,7 @@ class AuthenticatedUserProfileView(generics.RetrieveUpdateAPIView):
         except Exception as e:
             raise AuthenticationFailed(f'Error retrieving user profile: {e}')
 
+@method_decorator(csrf_exempt, name='dispatch') # <-- Eklendi
 class PostListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = PostSerializer
@@ -174,6 +177,7 @@ class PostListCreateView(generics.ListCreateAPIView):
 
         serializer.save(author=author_profile)
 
+@method_decorator(csrf_exempt, name='dispatch') # <-- Eklendi
 class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = PostSerializer
@@ -195,6 +199,7 @@ class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
 
         return queryset
 
+@method_decorator(csrf_exempt, name='dispatch') # <-- Eklendi
 class InteractionListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = InteractionSerializer
@@ -236,6 +241,7 @@ class InteractionListCreateView(generics.ListCreateAPIView):
         except Exception as e:
             raise serializers.ValidationError(f"Error creating interaction: {e}")
 
+@method_decorator(csrf_exempt, name='dispatch') # <-- Eklendi
 class CommentListCreateView(generics.ListCreateAPIView):
     serializer_class = InteractionSerializer
     permission_classes = [IsAuthenticated]
@@ -248,25 +254,41 @@ class CommentListCreateView(generics.ListCreateAPIView):
         return Interaction.objects.none()
 
     def perform_create(self, serializer):
-        Post = get_profiles_model('Post')
-        UserProfile = get_profiles_model('UserProfile')
-        post_id = self.kwargs.get('post_id')
-
-        if not post_id:
-            raise serializers.ValidationError("Post ID is required to create a comment.")
-
+        print("VALIDATED DATA:", serializer.validated_data)
         try:
+            Post = get_profiles_model('Post')
+            UserProfile = get_profiles_model('UserProfile')
+            post_id = self.kwargs.get('post_id')
+
+            if not post_id:
+                print("HATA: post_id yok!")
+                raise serializers.ValidationError("Post ID is required to create a comment.")
+
             post = Post.objects.get(id=post_id)
             user_profile = self.request.user if isinstance(self.request.user, UserProfile) else UserProfile.objects.get(supabase_id=self.request.user.supabase_id)
 
-            serializer.save(user=user_profile, post=post, type='comment', comment_text=serializer.validated_data.get('comment_text'))
-        except Post.DoesNotExist:
-            raise serializers.ValidationError("Post does not exist.")
-        except UserProfile.DoesNotExist:
-            raise serializers.ValidationError("User profile not found.")
-        except Exception as e:
-            raise serializers.ValidationError(f"Error creating comment: {e}")
+            print("YORUM KAYDEDİLİYOR:", {
+                "user": user_profile,
+                "post": post,
+                "type": "comment",
+                "comment_text": serializer.validated_data.get('comment_text')
+            })
 
+            serializer.save(user=user_profile, post=post, type='comment', comment_text=serializer.validated_data.get('comment_text'))
+            # Bildirim oluştur (yorum)
+            if post.author != user_profile:
+                Notification.objects.create(
+                    user=post.author,
+                    actor=user_profile,
+                    type='comment',
+                    object_id=str(post.id),
+                    message=f"{user_profile.nickname or 'Bir kullanıcı'} gönderinize yorum yaptı."
+                )
+        except Exception as e:
+            print("YORUM KAYIT HATASI:", str(e))
+            raise
+
+@method_decorator(csrf_exempt, name='dispatch') # <-- Eklendi
 class PostLikeToggleView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -287,6 +309,15 @@ class PostLikeToggleView(APIView):
             else:
                 Interaction.objects.create(post=post, user=user_profile, type='like')
                 liked = True
+                # Bildirim oluştur (beğeni)
+                if post.author != user_profile:
+                    Notification.objects.create(
+                        user=post.author,
+                        actor=user_profile,
+                        type='like',
+                        object_id=str(post.id),
+                        message=f"{user_profile.nickname or 'Bir kullanıcı'} gönderinizi beğendi."
+                    )
 
             updated_likes_count = Interaction.objects.filter(post=post, type='like').count()
 
@@ -299,6 +330,7 @@ class PostLikeToggleView(APIView):
         except Exception as e:
             return Response({"detail": f"An error occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@method_decorator(csrf_exempt, name='dispatch') # <-- Eklendi
 class MessageListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = MessageSerializer
@@ -331,12 +363,21 @@ class MessageListCreateView(generics.ListCreateAPIView):
             sender = UserProfile.objects.get(supabase_id=sender_id)
             receiver = UserProfile.objects.get(supabase_id=receiver_id)
 
-            serializer.save(sender=sender, receiver=receiver)
+            msg = serializer.save(sender=sender, receiver=receiver)
+            # Bildirim oluştur (mesaj)
+            Notification.objects.create(
+                user=receiver,
+                actor=sender,
+                type='message',
+                object_id=str(msg.id),
+                message=f"{sender.nickname or 'Bir kullanıcı'} size bir mesaj gönderdi."
+            )
         except UserProfile.DoesNotExist:
             raise serializers.ValidationError("Sender or receiver user profile not found.")
         except Exception as e:
             raise serializers.ValidationError(f"Error creating message: {e}")
 
+@method_decorator(csrf_exempt, name='dispatch') # <-- Eklendi
 class FriendshipListCreateView(
     generics.GenericAPIView,
     ListModelMixin,
@@ -412,8 +453,15 @@ class FriendshipListCreateView(
             sender = UserProfile.objects.get(supabase_id=sender_id)
             receiver = UserProfile.objects.get(supabase_id=receiver_id)
 
-            serializer.save(sender=sender, receiver=receiver)
-
+            friendship = serializer.save(sender=sender, receiver=receiver)
+            # Bildirim oluştur (arkadaşlık isteği)
+            Notification.objects.create(
+                user=receiver,
+                actor=sender,
+                type='friend_request',
+                object_id=str(friendship.id),
+                message=f"{sender.nickname or 'Bir kullanıcı'} size arkadaşlık isteği gönderdi."
+            )
         except UserProfile.DoesNotExist:
             raise serializers.ValidationError("Sender or receiver user profile not found.")
         except Exception as e:
@@ -463,6 +511,7 @@ class FriendshipListCreateView(
 
         instance.delete()
 
+@method_decorator(csrf_exempt, name='dispatch') # <-- Eklendi
 class PendingFriendshipListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = FriendshipSerializer
@@ -483,6 +532,7 @@ class PendingFriendshipListView(generics.ListAPIView):
             status='pending'
         ).select_related('sender', 'receiver')
 
+@method_decorator(csrf_exempt, name='dispatch') # <-- Eklendi
 class RecommendationListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = RecommendationSerializer
@@ -522,6 +572,7 @@ class RecommendationListCreateView(generics.ListCreateAPIView):
         except Exception as e:
             raise serializers.ValidationError(f"Error creating recommendation: {e}")
 
+@method_decorator(csrf_exempt, name='dispatch') # <-- Eklendi
 class UserJourneyListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserJourneySerializer
@@ -548,6 +599,7 @@ class UserJourneyListCreateView(generics.ListCreateAPIView):
         except Exception as e:
             raise serializers.ValidationError(f"Error creating user journey entry: {e}")
 
+@method_decorator(csrf_exempt, name='dispatch') # <-- Eklendi
 class UserFriendListView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = FriendSerializer
@@ -573,3 +625,108 @@ class UserFriendListView(ListAPIView):
         ).exclude(supabase_id=user_uuid).distinct()
 
         return friend_profiles_queryset
+
+class RoadmapListCreateView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = RoadmapSerializer
+
+    def get_queryset(self):
+        return Roadmap.objects.filter(user=self.request.user).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class RoadmapDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = RoadmapSerializer
+    lookup_field = 'pk'
+
+    def get_queryset(self):
+        return Roadmap.objects.filter(user=self.request.user)
+
+class RoadmapView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        Kullanıcının mevcut yol haritası adımlarını ve ilerlemesini getirir.
+        """
+        user = request.user
+        user_journeys = UserJourney.objects.filter(user=user, event_type="roadmap_step").order_by('event_data__step_index')
+        steps = [uj.event_data for uj in user_journeys]
+        return Response({"steps": steps})
+
+    def post(self, request):
+        """
+        AI'dan gelen yol haritası adımlarını kaydeder. Var olan adımlar silinir, yenileri eklenir.
+        Beklenen format: {"steps": [{"step_index": 1, "text": "...", "is_critical": true, "completed": false}, ...]}
+        """
+        user = request.user
+        steps = request.data.get("steps")
+        if not steps or not isinstance(steps, list):
+            return Response({"detail": "steps alanı zorunlu ve bir liste olmalı."}, status=400)
+        # Önce eski roadmap adımlarını sil
+        UserJourney.objects.filter(user=user, event_type="roadmap_step").delete()
+        # Her adımı sırayla kaydet
+        for step in steps:
+            UserJourney.objects.create(user=user, event_type="roadmap_step", event_data=step)
+        return Response({"detail": "Yol haritası başarıyla kaydedildi."}, status=201)
+
+    def patch(self, request):
+        """
+        Bir adımı tamamlandı olarak işaretler. Beklenen: {"step_index": 2, "completed": true}
+        """
+        user = request.user
+        step_index = request.data.get("step_index")
+        completed = request.data.get("completed")
+        if step_index is None or completed is None:
+            return Response({"detail": "step_index ve completed zorunlu."}, status=400)
+        try:
+            uj = UserJourney.objects.get(user=user, event_type="roadmap_step", event_data__step_index=step_index)
+            event_data = uj.event_data
+            event_data["completed"] = completed
+            uj.event_data = event_data
+            uj.save()
+            # Bildirim oluştur (yol haritası adımı tamamlandı)
+            Notification.objects.create(
+                user=user,
+                actor=user,
+                type='roadmap_step',
+                object_id=str(step_index),
+                message=f"Yol haritası adımı tamamlandı: {event_data.get('text','')}"
+            )
+            return Response({"detail": "Adım güncellendi."})
+        except UserJourney.DoesNotExist:
+            return Response({"detail": "Belirtilen adım bulunamadı."}, status=404)
+
+    @action(detail=False, methods=['post'])
+    def share(self, request):
+        """
+        Yol haritası tamamlandıktan sonra paylaşım olarak işaretler.
+        """
+        user = request.user
+        # Tüm adımlar tamamlanmış mı kontrol et
+        steps = UserJourney.objects.filter(user=user, event_type="roadmap_step")
+        if not steps.exists() or not all(s.event_data.get("completed") for s in steps):
+            return Response({"detail": "Tüm adımlar tamamlanmadan paylaşamazsınız."}, status=400)
+        # Paylaşım event'i oluştur
+        UserJourney.objects.create(user=user, event_type="roadmap_shared", event_data={"shared": True})
+        return Response({"detail": "Yol haritası başarıyla paylaşıldı."})
+
+# Bildirimler API
+from rest_framework.generics import ListCreateAPIView, UpdateAPIView
+
+class NotificationListView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user).order_by('-created_at')[:50]
+
+class NotificationReadView(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = NotificationSerializer
+    queryset = Notification.objects.all()
+    lookup_field = 'pk'
+    def perform_update(self, serializer):
+        serializer.save(is_read=True)

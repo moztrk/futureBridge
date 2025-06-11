@@ -1,0 +1,313 @@
+/* MessageSidebar.css */
+
+/* Sol alt köşeye sabit, dikdörtgen, modern mesaj kutusu */
+.message-sidebar-overlay {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+  z-index: 1000;
+  pointer-events: none;
+}
+.message-sidebar {
+  position: fixed;
+  left: 32px;
+  bottom: 32px;
+  width: 370px;
+  max-width: 95vw;
+  height: 480px;
+  max-height: 90vh;
+  background: #fff;
+  box-shadow: 0 8px 32px rgba(30,64,175,0.13), 0 2px 8px rgba(0,0,0,0.07);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateY(120%);
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.77,0,0.18,1), opacity 0.25s;
+  pointer-events: auto;
+  z-index: 1002;
+}
+.message-sidebar.open {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 10px 18px;
+  background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 1.13rem;
+  font-weight: 600;
+  color: #fff;
+}
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #fff;
+  cursor: pointer;
+  transition: color 0.2s;
+  opacity: 0.8;
+}
+.close-btn:hover {
+  color: #e5e7eb;
+  opacity: 1;
+}
+
+.sidebar-content {
+  display: flex;
+  height: 100%;
+  background: #f8fafc;
+}
+.friend-list {
+  width: 90px;
+  background: #f3f4f6;
+  border-right: 1px solid #e5e7eb;
+  padding: 8px 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.friend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0 4px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.18s;
+  margin: 0 4px;
+}
+.friend-item.selected, .friend-item:hover {
+  background: linear-gradient(90deg, #2563eb22 60%, #60a5fa22 100%);
+}
+.friend-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+}
+.friend-nickname {
+  font-size: 0.93rem;
+  font-weight: 500;
+  color: #2563eb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  max-width: 70px;
+}
+.no-friends {
+  color: #888;
+  font-size: 0.95rem;
+  text-align: center;
+  margin-top: 2rem;
+}
+.message-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  min-width: 0;
+  padding: 0 0 0 0;
+}
+.message-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 10px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+  font-weight: 600;
+  font-size: 1.01rem;
+  color: #2563eb;
+}
+.messages-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 8px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.message-item {
+  display: flex;
+  margin-bottom: 1px;
+}
+.message-item.sent {
+  justify-content: flex-end;
+}
+.message-item.received {
+  justify-content: flex-start;
+}
+.message-bubble {
+  max-width: 70%;
+  padding: 7px 13px;
+  border-radius: 16px;
+  font-size: 0.97rem;
+  background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(37,99,235,0.08);
+  margin-bottom: 1px;
+  word-break: break-word;
+  animation: fadeInUp 0.3s;
+}
+.message-item.received .message-bubble {
+  background: #e5e7eb;
+  color: #222;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.no-messages {
+  color: #888;
+  font-size: 0.97rem;
+  text-align: center;
+  margin-top: 2rem;
+}
+.message-input-form {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+}
+.message-input {
+  flex: 1;
+  border: none;
+  border-radius: 18px;
+  background: #f3f4f6;
+  padding: 7px 14px;
+  font-size: 0.97rem;
+  margin-right: 7px;
+}
+.message-input:focus {
+  outline: none;
+  background: #e5e7eb;
+}
+.send-btn {
+  background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.send-btn:hover {
+  background: #2563eb;
+}
+.select-friend-placeholder {
+  color: #888;
+  font-size: 1.01rem;
+  text-align: center;
+  margin-top: 2.5rem;
+}
+
+.message-bar {
+  position: fixed;
+  left: 32px;
+  bottom: 32px;
+  width: 140px;
+  height: 40px;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  z-index: 1001;
+  transition: background 0.2s, box-shadow 0.2s;
+  padding: 0 22px;
+  user-select: none;
+}
+.message-bar:hover {
+  background: #1746a0;
+  box-shadow: 0 6px 24px rgba(37,99,235,0.18);
+}
+
+/* Panel açıkken bar panelin altında kalacak */
+.message-sidebar.open + .message-bar {
+  z-index: 1000;
+}
+
+/* Panel açıkken barı gizle (isteğe bağlı) */
+.message-sidebar.open ~ .message-bar {
+  display: none;
+}
+
+/* Mobilde bar tam genişlikte ve alta sabit */
+@media (max-width: 600px) {
+  .message-sidebar {
+    left: 0;
+    bottom: 0;
+    width: 100vw;
+    max-width: 100vw;
+    height: 60vh;
+    max-height: 90vh;
+    border-radius: 0;
+  }
+  .sidebar-header {
+    padding: 12px 8px 8px 8px;
+  }
+  .sidebar-content {
+    flex-direction: column;
+  }
+  .friend-list {
+    flex-direction: row;
+    width: 100vw;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 8px 0;
+    gap: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .friend-item {
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 8px;
+    min-width: 60px;
+    gap: 2px;
+  }
+  .friend-avatar {
+    width: 28px;
+    height: 28px;
+  }
+  .friend-nickname {
+    font-size: 0.89rem;
+    max-width: 50px;
+  }
+  .message-bar {
+    left: 0;
+    bottom: 0;
+    width: 100vw;
+    border-radius: 0;
+    justify-content: center;
+    font-size: 17px;
+    height: 48px;
+    padding: 0;
+  }
+} 

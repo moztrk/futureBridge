@@ -12,6 +12,11 @@ from .views import (
     CommentListCreateView,
     PostLikeToggleView,
     AIAssistantSuggestionView,
+    MessageListCreateView,
+    RoadmapListCreateView,
+    RoadmapDetailView,
+    NotificationListView,
+    NotificationReadView,
 )
 
 urlpatterns = [
@@ -26,4 +31,10 @@ urlpatterns = [
     path('friendships/', FriendshipListCreateView.as_view(), name='friendship-list-create'),
     path('friendships/pending/', PendingFriendshipListView.as_view(), name='pending-friendship-list'),
     path('users/<uuid:user_uuid>/friends/', UserFriendListView.as_view(), name='user-friend-list'),
+    path('pending-friendships/', PendingFriendshipListView.as_view(), name='pending-friendships'),
+    path('messages/', MessageListCreateView.as_view(), name='message-list-create'),
+    path('roadmap/', RoadmapListCreateView.as_view(), name='roadmap-list-create'),
+    path('roadmap/<int:pk>/', RoadmapDetailView.as_view(), name='roadmap-detail'),
+    path('notifications/', NotificationListView.as_view(), name='notification-list'),
+    path('notifications/<int:pk>/read/', NotificationReadView.as_view(), name='notification-read'),
 ]

@@ -1,342 +1,210 @@
-// screens/NotificationsScreen.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  SafeAreaView,
   StyleSheet,
   FlatList,
   ActivityIndicator,
-  Alert,
   TouchableOpacity,
   Image,
-  RefreshControl, // Yenileme için
+  SafeAreaView,
   StatusBar,
   Platform,
+  RefreshControl,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native'; // Ekrana odaklanıldığında yenilemek için
+import { API_BASE_URL } from '@env';
 
-// -- Supabase Auth'tan JWT tokenını Alma (Placeholder) --
-// GERÇEK UYGULAMADA: Oturum açmış kullanıcının güncel JWT tokenını alacağınız yerdir.
-// Context API, Redux veya başka bir kimlik doğrulama yönetimi kullanıyorsanız oradan çekin.
-const userToken = 'eyJhbGciOiJIUzI1NiIsImtpZCI6IkZWeURXTVdPb1YvMVBNSkwiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2x6cnFpYWJ4ZXBzdnpuaXZ0ZmdkLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI2M2VjOTQ3ZC0zNTczLTRkYjMtYjU4My1kZjA3NGUwYjE4ZTEiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzQ1NzAxMjUxLCJpYXQiOjE3NDU2OTc2NTEsImVtYWlsIjoidGVzdHVzZXJAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsX3ZlcmlmaWVkIjp0cnVlfSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc0NTY5NzY1MX1dLCJzZXNzaW9uX2lkIjoiMGNlNWU1OTgtODIwZS00Y2QzLTg4ZjEtOTU4YzRiNTNjOGQxIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.fe_0m6ggUgwfeBNN3XpS3T76wkvtu2xb2mUCYoDi8OQ", "expires_at": 1745701251, "expires_in": 3600, "refresh_token": "niu0HGsXgxzOaNlZ36MCeQ'; // <-- Burayı KENDİ güncel tokenınızla DOLDURUN!
+const NOTIF_ICONS = {
+  like: '👍',
+  comment: '💬',
+  message: '✉️',
+  friend_request: '🤝',
+  roadmap_step: '✅',
+};
 
-// -- Backend API URL'niz --
-const API_BASE_URL = 'http://192.168.182.27:8000/api'; // IP adresinizin doğru olduğundan emin olun
+const defaultAvatar = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='20' fill='%23ddd'/%3E%3Ccircle cx='50' cy='100' r='40' fill='%23ddd'/%3E%3C/svg%3E`;
+
+const USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsImtpZCI6IkZWeURXTVdPb1YvMVBNSkwiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2x6cnFpYWJ4ZXBzdnpuaXZ0ZmdkLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiJiNzNjOGNiMC1iMGUwLTRiNTAtODdjMC02Y2MxYTNjNTJkNzUiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzQ4ODkzODI2LCJpYXQiOjE3NDg4OTAyMjYsImVtYWlsIjoibXVzdGFmYTQ0ZmJmYkBnbWFpbC5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoibXVzdGFmYTQ0ZmJmYkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJzdWIiOiJiNzNjOGNiMC1iMGUwLTRiNTAtODdjMC02Y2MxYTNjNTJkNzUifSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc0ODg5MDIyNn1dLCJzZXNzaW9uX2lkIjoiYTIyZWY4OTUtYzM4Ni00MzYwLTk4MzYtNTM4ZWUzZDE4NGFhIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.d7jJq2oc6kREXDc1_KsL99ZlCPYJREQBBfr_dsyM1-8';
+
+function formatDate(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('tr-TR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function getSafeAvatarUrl(url) {
+  if (!url || typeof url !== 'string' || url.startsWith('data:image/svg+xml') || url.endsWith('.svg')) {
+    const randomId = Math.floor(Math.random() * 99) + 1;
+    const gender = Math.random() > 0.5 ? 'men' : 'women';
+    return `https://randomuser.me/api/portraits/${gender}/${randomId}.jpg`;
+  }
+  return url;
+}
 
 const NotificationsScreen = () => {
-  // -- State Değişkenleri --
-  const [pendingRequests, setPendingRequests] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [refreshing, setRefreshing] = useState(false); // Pull-to-refresh için
 
-  // -- Bekleyen İstekleri Çekme Fonksiyonu --
-  const fetchPendingRequests = async () => {
+  const fetchNotifications = async () => {
     setLoading(true);
     setError(null);
-
     try {
-      const response = await fetch(`${API_BASE_URL}/friendships/pending/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userToken}`,
-        },
+      const res = await fetch(`${API_BASE_URL}/notifications/`, {
+        headers: { 'Authorization': `Bearer ${USER_TOKEN}` },
       });
-
-      if (!response.ok) {
-        const responseText = await response.text();
-        let errorMessage;
-        try {
-          const responseData = JSON.parse(responseText);
-          errorMessage = responseData?.detail || `HTTP error! status: ${response.status}`;
-        } catch {
-          errorMessage = responseText || `HTTP error! status: ${response.status}`;
-        }
-        console.error("Bekleyen istekleri çekerken backend hatası:", errorMessage);
-        throw new Error(errorMessage);
-      }
-
-      const responseData = await response.json();
-      setPendingRequests(Array.isArray(responseData) ? responseData : []);
-    } catch (err) {
-      console.error("Bekleyen istekleri çekerken Network/Fetch hatası:", err);
-      setError(`İstekler yüklenirken bir hata oluştu: ${err.message}`);
-      setPendingRequests([]);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+      const data = await res.json();
+      setNotifications(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setError('Bildirimler yüklenemedi.');
+      setNotifications([]);
     }
+    setLoading(false);
+    setRefreshing(false);
   };
 
-  // Ekrana odaklanıldığında veriyi çek
-  useFocusEffect(
-    useCallback(() => {
-      fetchPendingRequests();
-    }, []) // Bağımlılık dizisi boş, sadece ekran ilk odaklandığında çalışır
-  );
-
-  // Pull-to-refresh
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchPendingRequests(); // Veriyi tekrar çek
+  useEffect(() => {
+    fetchNotifications();
   }, []);
 
-  const handleAcceptRequest = async (friendshipId) => {
-    console.log('Accepting friendship request with ID:', friendshipId);
-
-    setPendingRequests(currentRequests =>
-        currentRequests.map(request =>
-            request.id === friendshipId ? { ...request, requestStatus: 'processing' } : request
-        )
-    );
-
+  const handleMarkRead = async (notifId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/friendships/${friendshipId}/`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${userToken}`,
-            },
-            body: JSON.stringify({ status: 'accepted' }),
-        });
-
-        if (!response.ok) {
-            const responseText = await response.text();
-            let errorMessage;
-            try {
-                const responseData = JSON.parse(responseText);
-                errorMessage = responseData?.detail || responseData?.non_field_errors?.[0] || `HTTP error! status: ${response.status}`;
-            } catch {
-                errorMessage = responseText || `HTTP error! status: ${response.status}`;
-            }
-            console.error("Arkadaşlık isteği kabul edilirken backend hatası:", errorMessage);
-            Alert.alert("Hata", `İstek kabul edilemedi: ${errorMessage}`);
-
-            setPendingRequests(currentRequests =>
-                currentRequests.map(request =>
-                    request.id === friendshipId ? { ...request, requestStatus: 'error', errorMessage: errorMessage } : request
-                )
-            );
-        } else {
-            console.log("Arkadaşlık isteği başarıyla kabul edildi:", friendshipId);
-            setPendingRequests(currentRequests =>
-                currentRequests.filter(request => request.id !== friendshipId)
-            );
-        }
-    } catch (err) {
-        console.error("Arkadaşlık isteği kabul edilirken Network/Fetch hatası:", err);
-        Alert.alert("Network Hatası", `İstek kabul edilemedi: ${err.message}`);
-
-        setPendingRequests(currentRequests =>
-            currentRequests.map(request =>
-                request.id === friendshipId ? { ...request, requestStatus: 'networkError', errorMessage: err.message } : request
-            )
-        );
-    }
-};
-
-const handleRejectRequest = async (friendshipId) => {
-    console.log('Rejecting friendship request with ID:', friendshipId);
-
-    setPendingRequests(currentRequests =>
-        currentRequests.map(request =>
-            request.id === friendshipId ? { ...request, requestStatus: 'processing' } : request
-        )
-    );
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/friendships/${friendshipId}/`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${userToken}`,
-            },
-            body: JSON.stringify({ status: 'rejected' }),
-        });
-
-        if (!response.ok) {
-            const responseText = await response.text();
-            let errorMessage;
-            try {
-                const responseData = JSON.parse(responseText);
-                errorMessage = responseData?.detail || responseData?.non_field_errors?.[0] || `HTTP error! status: ${response.status}`;
-            } catch {
-                errorMessage = responseText || `HTTP error! status: ${response.status}`;
-            }
-            console.error("Arkadaşlık isteği reddedilirken backend hatası:", errorMessage);
-            Alert.alert("Hata", `İstek reddedilemedi: ${errorMessage}`);
-
-            setPendingRequests(currentRequests =>
-                currentRequests.map(request =>
-                    request.id === friendshipId ? { ...request, requestStatus: 'error', errorMessage: errorMessage } : request
-                )
-            );
-        } else {
-            console.log("Arkadaşlık isteği başarıyla reddedildi:", friendshipId);
-            setPendingRequests(currentRequests =>
-                currentRequests.filter(request => request.id !== friendshipId)
-            );
-        }
-    } catch (err) {
-        console.error("Arkadaşlık isteği reddedilirken Network/Fetch hatası:", err);
-        Alert.alert("Network Hatası", `İstek reddedilemedi: ${err.message}`);
-
-        setPendingRequests(currentRequests =>
-            currentRequests.map(request =>
-                request.id === friendshipId ? { ...request, requestStatus: 'networkError', errorMessage: err.message } : request
-            )
-        );
-    }
-};
-
-  // Her bir bekleyen isteği render eden component
-  const renderRequestItem = ({ item }) => {
-    const senderNickname = item.sender_nickname || 'Bilinmeyen Kullanıcı';
-    const senderAvatar = item.sender?.avatar_url || 'https://via.placeholder.com/40/cccccc/FFFFFF?text=?';
-
-    return (
-      <View style={styles.requestItem}>
-        <Image
-          source={{ uri: senderAvatar }}
-          style={styles.requestAvatar}
-        />
-        <View style={styles.requestInfo}>
-          <Text style={styles.requestText}>
-            <Text style={{ fontWeight: 'bold' }}>{senderNickname}</Text> size arkadaşlık isteği gönderdi.
-          </Text>
-        </View>
-        <View style={styles.requestButtons}>
-          <TouchableOpacity
-            style={[styles.requestButton, styles.acceptButton]}
-            onPress={() => handleAcceptRequest(item.id)} // Ensure item.id exists
-          >
-            <Ionicons name="checkmark" size={18} color="#fff" />
-            <Text style={styles.buttonText}>Kabul</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.requestButton, styles.rejectButton]}
-            onPress={() => handleRejectRequest(item.id)} // Ensure item.id exists
-          >
-            <Ionicons name="close" size={18} color="#fff" />
-            <Text style={styles.buttonText}>Reddet</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
+      await fetch(`${API_BASE_URL}/notifications/${notifId}/read/`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${USER_TOKEN}` },
+      });
+      fetchNotifications();
+    } catch (e) {}
   };
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchNotifications();
+  };
+
+  const unread = notifications.filter(n => !n.is_read);
+  const read = notifications.filter(n => n.is_read);
+
+  const renderNotif = ({ item }) => (
+    <View style={[styles.notifItem, !item.is_read && styles.notifUnread]}> 
+      <Text style={styles.notifIcon}>{NOTIF_ICONS[item.type] || '🔔'}</Text>
+      <Image source={{ uri: getSafeAvatarUrl(item.actor_avatar_url) }} style={styles.notifAvatar} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text style={styles.notifActor}>{item.actor_nickname || 'Sistem'}</Text>
+          <Text style={styles.notifMsg}>{item.message}</Text>
+        </View>
+        <Text style={styles.notifTime}>{formatDate(item.created_at)}</Text>
+      </View>
+      {!item.is_read && (
+        <TouchableOpacity style={styles.notifReadBtn} onPress={() => handleMarkRead(item.id)}>
+          <Text style={styles.notifReadBtnText}>Okundu</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar
-        backgroundColor="#fff"
-        barStyle="dark-content"
-        translucent={false}
-      />
-      <View style={[styles.header, Platform.OS === 'android' && styles.androidHeader]}>
+    <SafeAreaView style={[styles.container, Platform.OS === 'android' && { paddingTop: StatusBar.currentHeight || 24 }]}> 
+      <View style={styles.headerBar}>
         <Text style={styles.headerTitle}>Bildirimler</Text>
       </View>
-
-      {loading && !refreshing && <ActivityIndicator size="large" color="#2563EB" style={{ marginTop: 30 }} />}
-      {error && !loading && <Text style={styles.errorText}>{error}</Text>}
-
-      {!loading && !error && pendingRequests.length > 0 && (
-        <FlatList
-          data={pendingRequests}
-          renderItem={renderRequestItem}
-          keyExtractor={item => item.id?.toString() || Math.random().toString()} // Ensure unique key
-          contentContainerStyle={{ paddingVertical: 10 }}
-          refreshControl={ // Pull-to-refresh ekleme
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={["#2563EB"]} // Android için yenileme indikatör rengi
-              tintColor="#2563EB" // iOS için yenileme indikatör rengi
-            />
-          }
-        />
-      )}
-
-      {!loading && !error && pendingRequests.length === 0 && (
-        <Text style={styles.noRequestsText}>Bekleyen arkadaşlık isteğiniz bulunmamaktadır.</Text>
-      )}
+      {loading && <ActivityIndicator size="large" color="#2563EB" style={{ marginTop: 30 }} />}
+      {error && <Text style={styles.errorText}>{error}</Text>}
+      <FlatList
+        data={[...unread, ...read]}
+        keyExtractor={item => item.id?.toString() || Math.random().toString()}
+        renderItem={renderNotif}
+        contentContainerStyle={{ paddingVertical: 10, paddingHorizontal: 8 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#2563EB"]} tintColor="#2563EB" />}
+        ListEmptyComponent={!loading && <Text style={styles.emptyText}>Hiç bildirimin yok.</Text>}
+      />
     </SafeAreaView>
   );
 };
 
-// --- Stil Tanımlamaları ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f2f5',
+    backgroundColor: '#F3F4F6',
   },
-  header: {
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 15,
-    paddingVertical: 12,
+    paddingVertical: 18,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
     backgroundColor: '#fff',
-    alignItems: 'center', // Başlığı ortala
-  },
-  androidHeader: {
-    // Android spesifik stil gerekiyorsa
+    minHeight: 64,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#2563EB',
+    flex: 1,
+    textAlign: 'left',
   },
-  requestItem: {
+  notifItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 15,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     backgroundColor: '#fff',
+    borderRadius: 10,
+    marginBottom: 8,
+    shadowColor: '#2563eb22',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  requestAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
+  notifUnread: {
+    backgroundColor: '#e0e7ff',
+    borderColor: '#2563eb',
+    borderWidth: 1.2,
+  },
+  notifIcon: {
+    fontSize: 28,
+    marginRight: 10,
+  },
+  notifAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 10,
     backgroundColor: '#e0e0e0',
   },
-  requestInfo: {
-    flex: 1, // Butonların sağa yaslanması için
-    justifyContent: 'center',
-  },
-  requestText: {
-    fontSize: 15,
-    color: '#333',
-    lineHeight: 20,
-  },
-  requestButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 10, // Bilgi ile butonlar arası boşluk
-  },
-  requestButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 15,
-    marginLeft: 8, // Butonlar arası boşluk
-  },
-  acceptButton: {
-    backgroundColor: '#22C55E', // Yeşil tonu
-  },
-  rejectButton: {
-    backgroundColor: '#EF4444', // Kırmızı tonu
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 12,
+  notifActor: {
     fontWeight: 'bold',
-    marginLeft: 4, // İkon ile metin arası boşluk
+    color: '#2563eb',
+    fontSize: 15,
+    marginRight: 6,
+  },
+  notifMsg: {
+    color: '#333',
+    fontSize: 15,
+    flexShrink: 1,
+  },
+  notifTime: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 2,
+  },
+  notifReadBtn: {
+    marginLeft: 12,
+    backgroundColor: '#22c55e',
+    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+  },
+  notifReadBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   errorText: {
     color: 'red',
@@ -345,13 +213,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     fontSize: 14,
   },
-  noRequestsText: {
+  emptyText: {
+    color: '#666',
     textAlign: 'center',
     marginTop: 30,
-    color: '#666',
-    paddingHorizontal: 20,
-    fontSize: 14,
+    fontSize: 15,
   },
 });
 
-export default NotificationsScreen;
+export default NotificationsScreen; 

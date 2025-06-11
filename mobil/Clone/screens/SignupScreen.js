@@ -187,4 +187,4 @@ const localStyles = StyleSheet.create({
   },
 });
 
-export default SignUpScreen;
+export default SignUpScreen; 

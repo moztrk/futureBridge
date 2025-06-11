@@ -28,7 +28,7 @@ const LoginScreen = ({ navigation }) => {
       Alert.alert('Giriş Hatası', error.message);
     } else {
       console.log('Giriş başarılı:', data);
-      navigation.navigate('Home'); // Doğru şekilde yönlendirme yapılır
+      navigation.navigate('Home', { userToken: data.session.access_token });
     }
   };
 
@@ -36,7 +36,7 @@ const LoginScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.authSection}>
         {/* Uygulama Başlığı */}
-        <Text style={styles.appTitle}>Future</Text>
+        <Text style={styles.appTitle}>Menture</Text>
 
         {/* Giriş Kutusu */}
         <View style={styles.authBox}>
@@ -77,4 +77,4 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
-export default LoginScreen;
+export default LoginScreen; 

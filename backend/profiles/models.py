@@ -117,3 +117,31 @@ class UserJourney(models.Model):
 
     def __str__(self):
         return f"Journey event '{self.event_type}' for {self.user.nickname or self.user.supabase_id} at {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
+
+class Roadmap(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='roadmaps')
+    title = models.CharField(max_length=200)
+    steps = models.JSONField(default=list)  # [{id, text, parent, is_critical, completed}, ...]
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} ({self.user.nickname or self.user.supabase_id})"
+
+class Notification(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='notifications')  # Bildirimi alan kullanıcı
+    actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='notifications_sent', null=True, blank=True)  # Bildirimi tetikleyen kullanıcı
+    type = models.CharField(max_length=32, choices=[
+        ('like', 'Like'),
+        ('comment', 'Comment'),
+        ('message', 'Message'),
+        ('friend_request', 'Friend Request'),
+        ('roadmap_step', 'Roadmap Step'),
+    ])
+    object_id = models.CharField(max_length=64, null=True, blank=True)  # İlgili nesne (post id, message id, vs)
+    message = models.TextField(null=True, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Notification to {self.user.nickname or self.user.supabase_id} - {self.type} ({self.created_at})"

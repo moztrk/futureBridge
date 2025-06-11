@@ -50,14 +50,17 @@ class SupabaseJWTAuthentication(BaseAuthentication):
             raise AuthenticationFailed('Authorization header must be "Bearer <token>"')
 
         token = parts[1]
-        logger.info(f"Authorization başlığından çıkarılan Token: {token[:10]}...{token[-10:]}")
+        logger.info(f"Authorization başlığından çıkarılan Token (ilk 10, son 10): {token[:10]}...{token[-10:]}")
 
         try:
+            logger.info(f"JWT decode için kullanılan tam token değeri: {token}")
+            # JWT tokenını doğrula ve payload'u çöz
             payload = jwt.decode(
                 token,
                 settings.SUPABASE_JWT_SECRET,
                 algorithms=["HS256"],
                 audience=settings.SUPABASE_AUDIENCE,
+                leeway=10  # Tolerans süresi eklendi
             )
             logger.info(f"JWT Token başarıyla çözüldü. Payload: {payload}")
 
@@ -100,7 +103,12 @@ class SupabaseJWTAuthentication(BaseAuthentication):
             logger.warning("JWT Token süresi dolmuş.")
             raise AuthenticationFailed('Token has expired')
         except jwt.InvalidAudienceError:
-            logger.warning(f"JWT Token Audience geçersiz. Beklenen: {settings.SUPABASE_AUDIENCE}, Token'daki: {getattr(payload, 'aud', None)}")
+            try:
+                decoded_payload = jwt.decode(token, options={"verify_signature": False, "verify_exp": False, "verify_aud": False})
+                token_aud = decoded_payload.get('aud')
+            except Exception:
+                token_aud = 'Bilinmiyor (Çözülemedi)'
+            logger.warning(f"JWT Token Audience geçersiz. Beklenen: {settings.SUPABASE_AUDIENCE}, Token'daki: {token_aud}")
             raise AuthenticationFailed('Invalid token audience')
         except jwt.InvalidAlgorithmError:
             try:
@@ -111,7 +119,7 @@ class SupabaseJWTAuthentication(BaseAuthentication):
             logger.warning(f"JWT Token Algoritması geçersiz. Beklenen: HS256, Token'daki: {token_alg}")
             raise AuthenticationFailed('Invalid token algorithm')
         except jwt.InvalidTokenError as e:
-            logger.warning(f"JWT Token genel doğrulama hatası: {e}", exc_info=True)
+            logger.warning(f"JWT Token genel doğrulama hatası: {e}. Hatalı token değeri: '{token}'", exc_info=True)
             raise AuthenticationFailed(f'Invalid token: {e}')
         except Exception as e:
             logger.error(f"Kimlik doğrulama sırasında beklenmeyen hata oluştu: {e}", exc_info=True)
